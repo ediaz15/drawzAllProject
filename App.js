@@ -3,7 +3,7 @@ import 'react-native-gesture-handler';
 
 import React, { Component, useState } from 'react';
 // import Text as Text from React Native
-import { Text, View, Platform, StyleSheet, Button} from 'react-native';
+import { Text, View, Platform, StyleSheet, Button, TouchableOpacity, TouchableHighlight} from 'react-native';
 // Navigation imports
 import { NavigationContainer } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
@@ -134,7 +134,7 @@ const BlankSketchPad = () => {
   return (
     <View style = {[defaultStyles.homepage, { justifyContent: "center"}]}>
       <DefaultText content = "Start a drawing here!"/>
-
+      <DefaultText content = {`Active Tool: ${activeTool}`}/>
         {/* Bottom Toolbar below*/}
         <ToolBar onSelectTool={handleSelectTool} />
     </View>
@@ -158,12 +158,59 @@ const DrawzAll = () => {
 
 // Buttons for toolbar
 const ToolBar = ({ onSelectTool }) => {
+
+  const [showShapeOptions, setShowShapeOptions] = useState(false);
+  
+  // catch for pressing other tools before shape option selected
+  const handleToolPress = (tool) => {
+    if (tool !== 'shape') {
+      setShowShapeOptions(false);
+    }
+    onSelectTool(tool);
+  }
+
+  /* dropdown menu for shapes */
+  const handleShapePress = () => {
+    setShowShapeOptions(!showShapeOptions);
+    onSelectTool("shape");
+  }
+
+  // after selecting shape, hide options
+  const handleShapeSelect = (shape) => {
+    onSelectTool(`${shape}`); 
+    setShowShapeOptions(false); 
+  }
+
   return (
     <View style={toolStyles.container}>
-      <Button title="Pen" color="blue" onPress={() => onSelectTool("pen")} />
-      <Button title="Eraser" color="red" onPress={() => onSelectTool("eraser")} />
-      <Button title="Shape" color="green" onPress={() => onSelectTool("shape")} />
-      <Button title="Color" color="orange" onPress={() => onSelectTool("color")} />
+
+      
+
+      <Button title="Pen" color="blue" onPress={() => handleToolPress("pen")} />
+      <Button title="Eraser" color="red" onPress={() => handleToolPress("eraser")} />
+        {/* Shape options dropdown 
+        * Unicode characters used for shapes
+        * TouchableHighlight allows for feedback on press, shows dropdown
+        * After selecting shape or pressing another tool, dropdown disappears
+        */}
+      <View style={toolStyles.shapeContainer}>
+        <Button title="Shape" color="green" onPress={handleShapePress} />
+        {showShapeOptions && (
+            <View style={toolStyles.shapeDropdown}>
+              {['\u25cb', '\u25a1', '\u25cf', '\u25a0'].map((shape) => (
+                <TouchableHighlight
+                  key={shape}
+                  onPress={ () => handleShapeSelect(shape)}
+                  underlayColor={"#a0a0a0ff"}
+                  style={toolStyles.shapeOption}
+                >
+                <Text style={toolStyles.shapeText}>{shape}</Text>
+              </TouchableHighlight>
+              ))}
+            </View>
+          )}
+        </View>
+      <Button title="Color" color="orange" onPress={() => handleToolPress("color")} />
     </View>
   );
 };
@@ -176,10 +223,42 @@ const toolStyles = StyleSheet.create({
     padding: 10,
     borderTopWidth: 1,
     borderColor: "#ccc",
-    backgroundColor: "#f9f9f9",
+    backgroundColor: "#dfdfdfff",
     position: "absolute",
     bottom: 0,
     width: "100%",
+  },
+  shapeContainer: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  shapeDropdown: {
+    position: 'absolute',
+    bottom: 45,
+    flexDirection: 'row', // listing items horizontally
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#ffffffff',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    width: 270,
+    paddingVertical: 4,
+    paddingHorizontal: 6,
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
+    zIndex: 10, 
+  },
+  shapeOption: {
+    marginHorizontal: 20,
+  },
+  shapeText: {
+    fontSize: 30,
+    color: '#282c2e',
+    textAlign: 'center',
   },
 });
 
