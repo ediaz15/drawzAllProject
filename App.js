@@ -3,10 +3,11 @@ import 'react-native-gesture-handler';
 
 import React, { Component, useState } from 'react';
 // import Text as Text from React Native
-import { Text, View, Platform, StyleSheet, Button, TouchableOpacity, TouchableHighlight} from 'react-native';
+import { Text, View, Platform, StyleSheet, Button, TouchableHighlight, ActivityIndicator} from 'react-native';
 // Navigation imports
 import { NavigationContainer } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
+import ColorPicker from 'react-native-wheel-color-picker';
 
 const Drawer = createDrawerNavigator();
 
@@ -126,7 +127,7 @@ const HomePage = ({ navigation }) => { // added navigation function parameter
 
 const BlankSketchPad = () => {
   const [activeTool, setActiveTool] = useState ("pen"); // useState hook
-
+  
   const handleSelectTool = (tool) => {
     setActiveTool(tool);
   };
@@ -159,17 +160,31 @@ const DrawzAll = () => {
 // Buttons for toolbar
 const ToolBar = ({ onSelectTool }) => {
 
+  // for shape select
   const [showShapeOptions, setShowShapeOptions] = useState(false);
+  // for color picker
+  const [currentColor, setCurrentColor] = useState("#000000");  // default to black
+  const [showColorPicker, setShowColorPicker] = useState(false);
+
   
   // catch for pressing other tools before shape option selected
   const handleToolPress = (tool) => {
-    if (tool !== 'shape') {
-      setShowShapeOptions(false);
-    }
     onSelectTool(tool);
+    if (tool === "color") setShowColorPicker(true);
+    else setShowColorPicker(false);
   }
 
-  /* dropdown menu for shapes */
+  // self explanatory
+  const onColorChange = (color) => {
+    setCurrentColor(color);
+  }
+
+  // hides picker after selection
+  const onColorChangeComplete = (color) => {
+    setCurrentColor(color);
+    setShowColorPicker(false);
+  };
+  // dropdown menu for shapes 
   const handleShapePress = () => {
     setShowShapeOptions(!showShapeOptions);
     onSelectTool("shape");
@@ -183,7 +198,6 @@ const ToolBar = ({ onSelectTool }) => {
 
   return (
     <View style={toolStyles.container}>
-
       
 
       <Button title="Pen" color="blue" onPress={() => handleToolPress("pen")} />
@@ -208,9 +222,31 @@ const ToolBar = ({ onSelectTool }) => {
               </TouchableHighlight>
               ))}
             </View>
-          )}
-        </View>
+        )}
+      </View>
+      {/* 
+        * Color picker component and styling
+        * I do NOT how these color options work, these are just biolerplate options
+        */}
       <Button title="Color" color="orange" onPress={() => handleToolPress("color")} />
+      {showColorPicker && (
+        <View style={toolStyles.colorPicker}>
+          <ColorPicker
+            color={currentColor}
+            onColorChange={onColorChange}
+            onColorChangeComplete={onColorChange}
+            thumbSize={30}
+            sliderSize={30}
+            noSnap={true}
+            row={false}
+          />
+          {/* Buttons to hide the color picker*/}
+          <View style={toolStyles.colorConfirms}>
+            <Button title="Done" color="green" onPress={() => setShowColorPicker(false)} />
+            <Button title="Cancel" color="red" onPress={() => setShowColorPicker(false)} />
+          </View>
+        </View>
+      )}
     </View>
   );
 };
@@ -259,6 +295,23 @@ const toolStyles = StyleSheet.create({
     fontSize: 30,
     color: '#282c2e',
     textAlign: 'center',
+  },
+  colorPicker: {
+    position: 'absolute',
+    bottom: 100,
+    left: 0,
+    right: 0,
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    padding: 10,
+    zIndex: 100,
+    elevation: 10,
+  },
+  colorConfirms: {
+    flexDirection: "row", 
+    justifyContent: "space-around", 
+    marginTop: 10 
   },
 });
 
