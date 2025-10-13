@@ -1,0 +1,13 @@
+
+npx @react-native-community/cli@latest init drawzAllProject
+npm install @react-navigation/native
+npm install @react-navigation/drawer
+npm install react-native-reanimated
+npm install react-native-screens
+npm install react-native@latest metro-react-native-babel-preset@latest
+npm install react-native-gesture-handler
+npm install react-native-worklets
+
+
+
+
