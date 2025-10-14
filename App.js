@@ -26,7 +26,33 @@ const defaultStyles = StyleSheet.create({
       },
     }),
     flex: 1,
+  },
+  topPage: {
+    flex: 1,
     alignItems: "center",
+    justifyContent: "flex-start",
+    backgroundColor: "#282c2e",
+  },
+  midPage: {
+    flex: 3,
+    alignItems: "center",
+    justifyContent: "center",
+    ...Platform.select({
+      ios: {
+        backgroundColor: "#caedffff",
+        fontFamily: "Times New Roman",
+      },
+      android: {
+        backgroundColor: "#d1ffdfff",
+        fontFamily: "Baskerville",
+      },
+    }),
+  },
+  bottomPage: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "flex-end",
+    backgroundColor: "#282c2e",
   },
   header: {
     fontWeight: "bold",
@@ -36,19 +62,38 @@ const defaultStyles = StyleSheet.create({
   pageHeader: {
     height: 100,
     fontSize: 24,
-    color: "#00aaff",
-    backgroundColor: "#282c2e",
+    ...Platform.select({
+      ios: {
+        color: "#21b5ffff",
+      },
+      android: {
+        color: "#41ff7aff",
+      },
+    }),
   },
   subHeader: {
     height: 50,
     width: 50,
     fontSize: 18,
-    color: "#3090c0ff",
-    backgroundColor: "#282c2e",
+    ...Platform.select({
+      ios: {
+        color: "#21b5ffff",
+      },
+      android: {
+        color: "#41ff7aff",
+      },
+    }),
   },
   text: {
     fontSize: 12,
-    color: "#282c2e",
+    ...Platform.select({
+      ios: {
+        color: "#caedffff",
+      },
+      android: {
+        color: "#d1ffdfff",
+      },
+    }),
   },
 });
 
@@ -108,19 +153,29 @@ const HomePage = ({ navigation }) => { // added navigation function parameter
 
   return (
     <View style = {defaultStyles.homepage}>
-      <PageHeader>
-        Home
-      </PageHeader>
-      <SubHeader>
-        Thanks for choosing DrawzAll!
-      </SubHeader>
-      <DefaultText content = 
-        "yea"/>
-      <NavToSketch
-        color = "#282c2e"
-        title = "Click for a Blank Sketchpad!"
-        onPress = {direct}
+      <View style = {defaultStyles.topPage}>
+        <PageHeader>
+          Home
+        </PageHeader>
+        <SubHeader>
+          Thanks for choosing DrawzAll!
+        </SubHeader>
+      </View>
+      <View style = {defaultStyles.midPage}>
+        <DefaultText content = 
+          "Tap one of the buttons below to get started!"
         />
+        <NavToSketch
+          color = "#282c2e"
+          title = "Click for a Blank Sketchpad!"
+          onPress = {direct}
+        />
+      </View>
+      <View style = {defaultStyles.bottomPage}>
+        <Text style = {defaultStyles.text}>
+          Created by the DrawzAll Team
+        </Text>
+      </View>
     </View>
   );
 }
@@ -149,8 +204,26 @@ const DrawzAll = () => {
   return (
     <NavigationContainer>
       <Drawer.Navigator>
-        <Drawer.Screen name="Home" component={HomePage}/>
-        <Drawer.Screen name="Sketch Pad" component={BlankSketchPad}/>
+        <Drawer.Screen name = "Home" component = {HomePage} options = 
+        {{title: "Welcome!",
+          headerStyle: {
+            backgroundColor: '#232527ff',
+          },
+            headerTintColor: '#FFFFFF',
+            headerTitleStyle: {
+            fontWeight: '300',
+          },
+        }}/>
+        <Drawer.Screen name = "Sketch Pad" component = {BlankSketchPad} options = 
+        {{title: "Blank Sketch",
+          headerStyle: {
+            backgroundColor: '#232527ff',
+          },
+            headerTintColor: '#FFFFFF',
+            headerTitleStyle: {
+            fontWeight: '300',
+          },
+        }}/>
       </Drawer.Navigator>
     </NavigationContainer>
 
