@@ -19,3 +19,10 @@ Erick Diaz
 - Setup React Native Skia [after hours, was successful]
 - Research for React Native Skia application for Drawing features implementation (gesture handling as well)
 - Configuration [dependency tracking, external packages/libraries]
+
+Christian Chavez
+- Splash Background
+- App icon
+- Modified mipmap files
+- Implemented Icon Image to splash and icon
+- Created Splash Slide
