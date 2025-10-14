@@ -6,3 +6,9 @@ Layla Payton:
 - UI Planning
 - Attempt at implementing Skia library for drawing page, but was unsuccessful
 
+Colin Dorken
+- defaultStyles style sheet
+- HomePage, Profile, & SavedDrawings pages (HomePage navigation debugged by others, seen in comments)
+- Header, PageHeader, SubHeader, NavTo, DefaultText components
+- Styling the Drawer navigator screens
+- UI Planning & ideation
