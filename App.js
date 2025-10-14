@@ -157,7 +157,20 @@ const DrawzAll = () => {
   );
 }
 
-// Buttons for toolbar
+/* 
+ * TODO for ToolBar:
+  * - Pen: save radius selected, create a fade effect outside of the radius,
+  *        should consist for about the last 10% of the radius, fade from current color to transparent
+  * - Eraser: same as pen, use pen radius, but set to transparent color and no fade
+  * - Shape: create a dragging slider, start from one corner and drag to another,
+  *          for unfilled shapes, line thickness corresponds to pen radius, color is current color
+  *          for filled shapes, color is current color, no need to impliment radius
+  * - Color: Should be all done
+  * 
+  * - Save the state from the last stroke to use for redo/undo (probably can't code until we get skia working)
+  * - Get skia working or another drawing library (dreading this with all our issues thus far)
+  * 
+ */
 const ToolBar = ({ onSelectTool }) => {
 
   // for shape select
