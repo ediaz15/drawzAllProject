@@ -356,7 +356,7 @@ const DrawzAll = () => {
 
 /* 
  * TODO for ToolBar:
-  * - Pen: save radius selected, create a fade effect outside of the radius,
+  * - Pen: add size slider and save the size, create a fade effect outside of the radius,
   *        should consist for about the last 10% of the radius, fade from current color to transparent
   * - Eraser: same as pen, use pen radius, but set to transparent color and no fade
   * - Shape: drag shape from one corner to another
@@ -424,8 +424,8 @@ const ToolBar = ({ onSelectTool }) => {
         {showShapeOptions && (
             <View style={toolStyles.shapeDropdown}>
               {['\u25cb', '\u25a1', '\u25cf', '\u25a0'].map((shape) => (
-                <TouchableHighlight
-                  key={shape}
+                <TouchableHighlight // Interactable view window
+                  key={shape} // sets a unique identifier for each shape
                   onPress={ () => handleShapeSelect(shape)}
                   underlayColor={"#a0a0a0ff"}
                   style={toolStyles.shapeOption}
@@ -438,21 +438,22 @@ const ToolBar = ({ onSelectTool }) => {
       </View>
       {/* 
         * Color picker component and styling
-        * I do NOT how these color options work, these are just biolerplate options
+        * Uses react-native-wheel-color-picker
         */}
       <Button title="Color" color="orange" onPress={() => handleToolPress("color")} />
       {showColorPicker && (
         <View style={toolStyles.colorPicker}>
           <ColorPicker
             color={currentColor}
-            onColorChange={onColorChange}
-            onColorChangeComplete={onColorChange}
+            onColorChange={onColorChange} // detects color change
+            onColorChangeComplete={onColorChange} // originally here for auto menu hiding, but can probably remove
             thumbSize={30}
             sliderSize={30}
             noSnap={true}
             row={false}
           />
-          {/* Buttons to hide the color picker*/}
+          {/* Buttons to hide the color picker
+            TODO: Make cancel button return color to color before opening wheel */}
           <View style={toolStyles.colorConfirms}>
             <Button title="Done" color="green" onPress={() => setShowColorPicker(false)} />
             <Button title="Cancel" color="red" onPress={() => setShowColorPicker(false)} />
@@ -464,7 +465,7 @@ const ToolBar = ({ onSelectTool }) => {
 };
 // Basic Styling for Toolbar
 const toolStyles = StyleSheet.create({
-  container: {
+  container: { // Toolbar at bottom, lists buttons horizontally, colors defined in ToolBar
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
@@ -476,15 +477,15 @@ const toolStyles = StyleSheet.create({
     bottom: 0,
     width: "100%",
   },
-  shapeContainer: {
+  shapeContainer: { // General styling for shape button and dropdown
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  shapeDropdown: {
+  shapeDropdown: { // List items horizontally and above the shape button, shadows for visual appeal
     position: 'absolute',
     bottom: 45,
-    flexDirection: 'row', // listing items horizontally
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#ffffffff',
@@ -500,24 +501,24 @@ const toolStyles = StyleSheet.create({
     elevation: 3,
     zIndex: 10, 
   },
-  shapeOption: {
+  shapeOption: { // margin between the shape options
     marginHorizontal: 20,
   },
-  shapeText: {
+  shapeText: { // shape size and color
     fontSize: 30,
     color: '#282c2e',
     textAlign: 'center',
   },
-  colorPicker: {
+  colorPicker: { // Styling for color wheel
     position: 'absolute',
     bottom: 100,
-    left: 0,
+    left: 0, // stretches across screen
     right: 0,
     backgroundColor: "#fff",
-    borderTopLeftRadius: 10,
+    borderTopLeftRadius: 10, // rounds the corners
     borderTopRightRadius: 10,
     padding: 10,
-    zIndex: 100,
+    zIndex: 100, // makes it appear on the top
     elevation: 10,
   },
   colorConfirms: {
