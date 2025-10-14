@@ -1,0 +1,8 @@
+Layla Payton: 
+- Creation of ToolKit const and editing BlankSketchPad to link to toolkit
+- toolStyles style sheet
+- Implementation of color wheel import
+- Setting goals for what to implement in toolkit for the future
+- UI Planning
+- Attempt at implementing Skia library for drawing page, but was unsuccessful
+
