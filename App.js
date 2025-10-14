@@ -27,6 +27,33 @@ const defaultStyles = StyleSheet.create({
     }),
     flex: 1,
   },
+  sketchPad: {
+    ...Platform.select({
+      ios: {
+        backgroundColor: "#daf2feff",
+        fontFamily: "Times New Roman",
+      },
+      android: {
+        backgroundColor: "#eefff3ff",
+        fontFamily: "Baskerville",
+      },
+    }),
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "flex-start",
+  },
+  profile: {
+    ...Platform.select({
+      ios: {
+        backgroundColor: "#c1eaffff",
+        fontFamily: "Times New Roman",
+      },
+      android: {
+        backgroundColor: "#c2ffb1ff",
+        fontFamily: "Baskerville",
+      },
+    }),
+  },
   topPage: {
     flex: 1,
     alignItems: "center",
@@ -57,7 +84,7 @@ const defaultStyles = StyleSheet.create({
   header: {
     fontWeight: "bold",
     justifyContent: "flex-start",
-    margin: 35,
+    margin: 25,
   },
   pageHeader: {
     height: 100,
@@ -84,7 +111,7 @@ const defaultStyles = StyleSheet.create({
       },
     }),
   },
-  text: {
+  lightText: {
     fontSize: 12,
     ...Platform.select({
       ios: {
@@ -95,6 +122,10 @@ const defaultStyles = StyleSheet.create({
       },
     }),
   },
+  darkText: {
+    fontSize: 12,
+    color: "#000000ff",
+  }
 });
 
 // Default Heading
@@ -128,7 +159,8 @@ const SubHeader = (props) => {
   );
 }
 
-const NavToSketch = (props) => {
+// Default Navigation button
+const NavTo = (props) => {
   return (
     <Button
       color = {props.color}
@@ -141,7 +173,7 @@ const NavToSketch = (props) => {
 // Default Text component
 const DefaultText = (props) => {
   return (
-    <Text style = {defaultStyles.text}>
+    <Text style = {defaultStyles.darkText}>
       {props.content}
     </Text>
   );
@@ -150,6 +182,7 @@ const DefaultText = (props) => {
 const HomePage = ({ navigation }) => { // added navigation function parameter
 
   const direct = () => navigation.navigate("Sketch Pad"); // fixed typo, removed props. and set to const
+  const profileDirect = () => navigation.navigate("Profile");
 
   return (
     <View style = {defaultStyles.homepage}>
@@ -162,23 +195,58 @@ const HomePage = ({ navigation }) => { // added navigation function parameter
         </SubHeader>
       </View>
       <View style = {defaultStyles.midPage}>
-        <DefaultText content = 
+        <Text style = {defaultStyles.lightText}>
           "Tap one of the buttons below to get started!"
-        />
-        <NavToSketch
+        </Text> 
+        <NavTo
           color = "#282c2e"
           title = "Click for a Blank Sketchpad!"
           onPress = {direct}
         />
       </View>
       <View style = {defaultStyles.bottomPage}>
-        <Text style = {defaultStyles.text}>
+        <NavTo
+          color = "#282c2e"
+          title = "Go to Profile Page"
+          onPress = {profileDirect}
+        />
+        <Text style = {defaultStyles.lightText}>
           Created by the DrawzAll Team
         </Text>
       </View>
     </View>
   );
 }
+
+const Profile = ({navigation}) => {
+  const toSaved = () => navigation.navigate("Saved Drawings");
+
+  return (
+    <View style = {defaultStyles.homepage}>
+      <View style = {defaultStyles.topPage}>
+        <PageHeader>
+          username:
+         </PageHeader>
+         <PageHeader>
+          <NavTo
+            color = "#282c2e"
+            title = "saved sketches:"
+            onPress = {toSaved}
+          />
+         </PageHeader>
+      </View>
+      <View style = {defaultStyles.midPage}>
+        <ActivityIndicator size="large" color="#000000ff" />
+        <DefaultText content = "Fetching profile details..."/>
+      </View>
+      <View style = {defaultStyles.bottomPage}>
+        <Text style = {defaultStyles.lightText}>
+          Profile page under construction.
+        </Text>
+      </View>
+    </View>
+  );
+};
 
 const BlankSketchPad = () => {
   const [activeTool, setActiveTool] = useState ("pen"); // useState hook
@@ -188,7 +256,7 @@ const BlankSketchPad = () => {
   };
 
   return (
-    <View style = {[defaultStyles.homepage, { justifyContent: "center"}]}>
+    <View style = {[defaultStyles.sketchPad]}>
       <DefaultText content = "Start a drawing here!"/>
       <DefaultText content = {`Active Tool: ${activeTool}`}/>
         {/* Bottom Toolbar below*/}
@@ -197,6 +265,28 @@ const BlankSketchPad = () => {
   );
 };
 
+const SavedDrawings = ({navigation}) => {
+  const direct = () => navigation.navigate("Sketch Pad");
+
+  return (
+    <View style = {defaultStyles.homepage}>
+      <View style = {defaultStyles.topPage}>
+        <PageHeader>
+          No saved drawings yet!
+        </PageHeader>
+      </View>
+      <View style = {defaultStyles.midPage}>
+      </View>
+      <View style = {defaultStyles.bottomPage}>
+        <NavTo
+          color = "#282c2e"
+          title = "Click for a Blank Sketchpad!"
+          onPress = {direct}
+        />
+      </View>
+    </View>
+  );
+};
 
 // App - define initial app component
 const DrawzAll = () => {
@@ -214,9 +304,28 @@ const DrawzAll = () => {
             fontWeight: '300',
           },
         }}/>
+        <Drawer.Screen name = "Profile" component = {Profile} options = 
+        {{title: "Profile",
+          headerStyle: {
+            backgroundColor: '#232527ff',
+          },
+            headerTintColor: '#FFFFFF',
+            headerTitleStyle: {
+            fontWeight: '300',
+          },
+        }}/>
         <Drawer.Screen name = "Sketch Pad" component = {BlankSketchPad} options = 
         {{title: "Blank Sketch",
           headerStyle: {
+            backgroundColor: '#232527ff',
+          },
+            headerTintColor: '#FFFFFF',
+            headerTitleStyle: {
+            fontWeight: '300',
+          },
+        }}/>
+        <Drawer.Screen name = "Saved Drawings" component = {SavedDrawings} options = 
+        {{  headerStyle: {
             backgroundColor: '#232527ff',
           },
             headerTintColor: '#FFFFFF',
@@ -346,8 +455,8 @@ const toolStyles = StyleSheet.create({
     alignItems: "center",
     padding: 10,
     borderTopWidth: 1,
-    borderColor: "#ccc",
-    backgroundColor: "#dfdfdfff",
+    borderColor: "#232527ff",
+    backgroundColor: "#282c2e",
     position: "absolute",
     bottom: 0,
     width: "100%",
