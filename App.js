@@ -8,8 +8,21 @@ import { Text, View, Platform, StyleSheet, Button, TouchableHighlight, ActivityI
 import { NavigationContainer } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import ColorPicker from 'react-native-wheel-color-picker';
+import {Fill, Canvas, Rect, useCanvasSize} from "@shopify/react-native-skia";
+
+
 
 const Drawer = createDrawerNavigator();
+
+
+const tryingCanvas = () => {
+  const {ref, size: {width, height}} = useCanvasSize();
+  return (
+    <Canvas style={{ flex: 1 }} ref={ref}>
+      <Rect color="cyan" rect={{ x: 0, y: 0, width, height }} />
+    </Canvas>
+  );
+};
 
 
 // Default Stylesheet (just to separate the defaults from special cases)
@@ -333,6 +346,8 @@ const DrawzAll = () => {
             fontWeight: '300',
           },
         }}/>
+        <Drawer.Screen name="Demo" component={tryingCanvas}>
+        </Drawer.Screen>
       </Drawer.Navigator>
     </NavigationContainer>
 
