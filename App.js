@@ -1,29 +1,20 @@
 // import React, Component, useState module as Component from base React
 import 'react-native-gesture-handler';
+import { runOnJS } from 'react-native-reanimated';
 
-import React, { Component, useState } from 'react';
+import React, { Component, useState, useRef} from 'react';
 // import Text as Text from React Native
 import { Text, View, Platform, StyleSheet, Button, TouchableHighlight, ActivityIndicator} from 'react-native';
 // Navigation imports
 import { NavigationContainer } from '@react-navigation/native';
+import { Pressable } from 'react-native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import ColorPicker from 'react-native-wheel-color-picker';
-import {Fill, Canvas, Rect, useCanvasSize} from "@shopify/react-native-skia";
-
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import { Canvas, Path, Skia } from "@shopify/react-native-skia";
 
 
 const Drawer = createDrawerNavigator();
-
-
-const tryingCanvas = () => {
-  const {ref, size: {width, height}} = useCanvasSize();
-  return (
-    <Canvas style={{ flex: 1 }} ref={ref}>
-      <Rect color="cyan" rect={{ x: 0, y: 0, width, height }} />
-    </Canvas>
-  );
-};
-
 
 // Default Stylesheet (just to separate the defaults from special cases)
 const defaultStyles = StyleSheet.create({
@@ -346,7 +337,7 @@ const DrawzAll = () => {
             fontWeight: '300',
           },
         }}/>
-        <Drawer.Screen name="Demo" component={tryingCanvas}>
+        <Drawer.Screen name="Try to Draw" component={FreehandDrawing}>
         </Drawer.Screen>
       </Drawer.Navigator>
     </NavigationContainer>
@@ -462,6 +453,92 @@ const ToolBar = ({ onSelectTool }) => {
     </View>
   );
 };
+
+
+//Repurposed from https://medium.com/react-native-rocket/building-a-hand-drawing-app-with-react-native-skia-and-gesture-handler-9797f5f7b9b4
+//runOnJS import explained: https://docs.swmansion.com/react-native-reanimated/docs/3.x/threading/runOnJS/
+//It was in TS originally but after gluing things, got it to be in JS
+
+//Good explanation found here: 
+//https://spin.atomicobject.com/react-native-skia/
+
+/*
+ Pan Gesture https://docs.swmansion.com/react-native-gesture-handler/docs/gestures/pan-gesture/
+*/
+
+const FreehandDrawing = () => {
+  //To track the actual gestures, we need to store the path that is made from the touch gestures
+    //to store the path, we use an array that we continously append to that stores
+  const [paths, setPaths] = useState([]);
+  const currentPathRef = useRef(null);
+  //pan gesture is when we drag something across the screen, imagine a pixel we drag and we store its coordinates
+  
+  //onStartPath refers to the first touch portion of the pan gesture, so its the moment your finger touches the screen
+  //We make a path and we track is x,y position
+  //basically user starts to touch the screen -> when that happens, we make a new path
+  const startPath = (x, y) => {
+    const fingerPath = Skia.Path.Make();
+    fingerPath.moveTo(x, y);
+    currentPathRef.current = fingerPath;
+    setPaths((prev) => [...prev, fingerPath]);
+  };
+
+  //to actually update our array of coordinates, we need to copy over the elements (coordinates) and continuosly extend the length
+  // SINCE every path is basically a new line, we create a new path to track it
+  //to actually render it, we need to store all the paths
+  //as the user drags their finger, we need to add the xy points to the path
+  const updatePath = (x, y) => {
+    const fingerPath = currentPathRef.current;
+    if (fingerPath) {
+      fingerPath.lineTo(x, y);
+      setPaths((prev) => {
+        const newArr = [...prev];
+        newArr[newArr.length - 1] = fingerPath;
+        return newArr;
+      });
+    }
+  };
+
+  //this happens when the user takes their finger off the screen, meaning we MUST end the path
+  const endPath = () => {
+    currentPathRef.current = null;
+  };
+
+  //to make the drag work,we call the onstart, onupdate, and onend functions with their inputs as the event coordinates
+  const pan = Gesture.Pan()
+    .onStart((e) => runOnJS(startPath)(e.x, e.y))
+    .onUpdate((e) => runOnJS(updatePath)(e.x, e.y))
+    .onEnd(() => runOnJS(endPath)());
+
+  return (
+    //GestureDetector wraps around the canvas component [treated like a view] to capture any panGesture related events, its like when u drag an item on a screen
+    //WE CAN EDIT THE STOKE RELATED THINGS ALONGSIDE THE COLOR!!!
+    <GestureDetector gesture={pan}> 
+      <Canvas style={{ flex: 1, backgroundColor: "white" }}>
+        {paths.map((fingerPath, index) => (
+          <Path
+            key={index}
+            path={fingerPath}
+            color="black"
+            style="stroke"
+            strokeWidth={3}
+            strokeJoin="round"
+            strokeCap="round"
+          />
+        ))}
+      </Canvas>
+    </GestureDetector>
+  );
+};
+
+//Props to use when drawing..
+/*
+strokeWidth,
+color
+
+*/
+
+
 // Basic Styling for Toolbar
 const toolStyles = StyleSheet.create({
   container: {

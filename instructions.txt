@@ -54,7 +54,7 @@ Make sure this is added in MainActivity.kt at drawzAllProject\android\app\src\ma
 
 import android.os.Bundle;
 
-^^This should be at the top of the file^^
+^^This import should be at the top of the file^^
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(null)
