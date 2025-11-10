@@ -1,0 +1,28 @@
+Layla Payton: 
+- Creation of ToolKit const and editing BlankSketchPad to link to toolkit
+- toolStyles style sheet
+- Implementation of color wheel import
+- Setting goals for what to implement in toolkit for the future
+- UI Planning
+- Attempt at implementing Skia library for drawing page, but was unsuccessful
+
+Colin Dorken
+- defaultStyles style sheet
+- HomePage, Profile, & SavedDrawings pages (HomePage navigation debugged by others, seen in comments)
+- Header, PageHeader, SubHeader, NavTo, DefaultText components
+- Styling the Drawer navigator screens
+- UI Planning & ideation
+
+Erick Diaz
+- Drawer Navigation
+- Dependency Tracking
+- Setup React Native Skia [after hours, was successful]
+- Research for React Native Skia application for Drawing features implementation (gesture handling as well)
+- Configuration [dependency tracking, external packages/libraries]
+
+Christian Chavez
+- Splash Background
+- App icon
+- Modified mipmap files
+- Implemented Icon Image to splash and icon
+- Created Splash Slide
