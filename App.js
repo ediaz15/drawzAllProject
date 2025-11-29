@@ -264,7 +264,7 @@ const BlankSketchPad = () => {
       <DefaultText content = "Start a drawing here!"/>
       <DefaultText content = {`Active Tool: ${activeTool}`}/>
         {/* Bottom Toolbar below*/}
-        <ToolBar onSelectTool={handleSelectTool} />
+        <ToolBar onSelectTool={handleSelectTool} activeTool={activeTool} />
     </View>
   );
 };
@@ -361,30 +361,37 @@ const DrawzAll = () => {
  */
 
 
-const ToolBar = ({ onSelectTool }) => {
+const ToolBar = ({ onSelectTool, onSelectColor, currentTool }) => {
 
   // for shape select
   const [showShapeOptions, setShowShapeOptions] = useState(false);
   // for color picker
   const [currentColor, setCurrentColor] = useState("#000000");  // default to black
   const [showColorPicker, setShowColorPicker] = useState(false);
+  const [previousTool, setPreviousTool] = useState("pen"); // to track after color 
 
   
   // catch for pressing other tools before shape option selected
   const handleToolPress = (tool) => {
-    onSelectTool(tool);
-    if (tool === "color") setShowColorPicker(true);
-    else setShowColorPicker(false);
+    if (tool === "color") {
+      setPreviousTool(currentTool);
+      setShowColorPicker(true);
+    } else { 
+      setShowColorPicker(false);
+      onSelectTool(tool);
+    }
   }
 
   // self explanatory
   const onColorChange = (color) => {
     setCurrentColor(color);
+    onSelectColor(color);
   }
 
   // hides picker after selection
   const onColorChangeComplete = (color) => {
     setCurrentColor(color);
+    onSelectColor(color);
     setShowColorPicker(false);
   };
   // dropdown menu for shapes 
@@ -446,8 +453,17 @@ const ToolBar = ({ onSelectTool }) => {
           {/* Buttons to hide the color picker
             TODO: Make cancel button return color to color before opening wheel */}
           <View style={toolStyles.colorConfirms}>
-            <Button title="Done" color="green" onPress={() => setShowColorPicker(false)} />
-            <Button title="Cancel" color="red" onPress={() => setShowColorPicker(false)} />
+            <Button title="Done" color="green" onPress={() => {
+                setShowColorPicker(false);
+                onSelectTool(previousTool);
+            }}  
+            />
+            <Button title="Cancel" color="red" onPress={() => {
+              setShowColorPicker(false);
+              onSelectTool(previousTool);
+              setCurrentColor(currentColor); // optional: revert to last confirmed color
+            }}  
+            />
           </View>
         </View>
       )}
@@ -467,68 +483,181 @@ const ToolBar = ({ onSelectTool }) => {
  Pan Gesture https://docs.swmansion.com/react-native-gesture-handler/docs/gestures/pan-gesture/
 */
 
-const FreehandDrawing = () => {
+const FreehandDrawing = ({}) => {
   //To track the actual gestures, we need to store the path that is made from the touch gestures
     //to store the path, we use an array that we continously append to that stores
   const [paths, setPaths] = useState([]);
   const currentPathRef = useRef(null);
   //pan gesture is when we drag something across the screen, imagine a pixel we drag and we store its coordinates
   
+  // stuff from old toolbelt
+  const [selectedTool, setSelectedTool] = useState("pen");
+  const [selectedColor, setSelectedColor] = useState("#000000");
+  const [selectedShape, setSelectedShape] = useState(null);
+
+  const shapeStartRef = useRef(null); // shape coordinates
+
   //onStartPath refers to the first touch portion of the pan gesture, so its the moment your finger touches the screen
   //We make a path and we track is x,y position
   //basically user starts to touch the screen -> when that happens, we make a new path
   const startPath = (x, y) => {
     const fingerPath = Skia.Path.Make();
     fingerPath.moveTo(x, y);
-    currentPathRef.current = fingerPath;
-    setPaths((prev) => [...prev, fingerPath]);
+
+    currentPathRef.current = { // edited for tools
+      path: fingerPath,
+      tool: selectedTool,
+      color: selectedColor,
+    };
+
+    setPaths((prev) => [...prev, currentPathRef.current]);
+  };
+
+  // minor conditional update to check beforehand
+  const updatePath = (x, y) => {
+    if (!currentPathRef.current) return;
+
+    currentPathRef.current.path.lineTo(x, y);
+
+    setPaths((prev) => [...prev]);
+  }; 
+
+  const endPath = () => {
+    currentPathRef.current = null;
   };
 
   //to actually update our array of coordinates, we need to copy over the elements (coordinates) and continuosly extend the length
   // SINCE every path is basically a new line, we create a new path to track it
   //to actually render it, we need to store all the paths
   //as the user drags their finger, we need to add the xy points to the path
-  const updatePath = (x, y) => {
-    const fingerPath = currentPathRef.current;
-    if (fingerPath) {
-      fingerPath.lineTo(x, y);
-      setPaths((prev) => {
-        const newArr = [...prev];
-        newArr[newArr.length - 1] = fingerPath;
-        return newArr;
-      });
-    }
+
+  // shape handlers below
+  const startShape = (x, y) => {
+    shapeStartRef.current = { x, y };
   };
 
-  //this happens when the user takes their finger off the screen, meaning we MUST end the path
-  const endPath = () => {
-    currentPathRef.current = null;
+  const endShape = (x, y) => {
+    const start = shapeStartRef.current;
+    if (!start) return;
+    const { x: startx, y: starty } = start; // declare starting coords for shape
+    const endx = x, endy = y;
+
+    const shapePath = Skia.Path.Make();
+    
+
+    const shape = selectedShape;
+    const isFilled = shape === '\u25cf' || shape === '\u25a0';
+    const isCircle = shape === '\u25cb' || shape === '\u25cf';
+
+    if (isCircle) {
+      const radius = Math.sqrt((startx - endx) ** 2 + (starty - endy) ** 2);
+      shapePath.addCircle(startx, starty, radius);
+    } else {
+      shapePath.addRect({
+        x: Math.min(startx, endx),
+        y: Math.min(starty, endy),
+        width: Math.abs(endx - startx),
+        height: Math.abs(endy - starty),
+      });
+    }
+
+    setPaths(prev => [
+      ...prev,
+      {
+        path: shapePath,
+        color: selectedColor,
+        tool: isFilled ? "shape-fill" : "shape"
+      }
+    ]);
+
+    shapeStartRef.current = null;
   };
 
   //to make the drag work,we call the onstart, onupdate, and onend functions with their inputs as the event coordinates
   const pan = Gesture.Pan()
-    .onStart((e) => runOnJS(startPath)(e.x, e.y))
-    .onUpdate((e) => runOnJS(updatePath)(e.x, e.y))
-    .onEnd(() => runOnJS(endPath)());
+    .onStart((e) => {
+      if (selectedTool  === "pen" || selectedTool  === "eraser") {
+        runOnJS(startPath)(e.x, e.y);
+      } 
+      if (selectedTool === "shape" && selectedShape) {
+        runOnJS(startShape)(e.x, e.y);
+      }
+    })
+    .onUpdate((e) => {
+      if (selectedTool === "pen" || selectedTool === "eraser") { // only for these, dont update shapes right away
+        runOnJS(updatePath)(e.x, e.y);
+      }
+    })
+    .onEnd((e) => {
+      if (selectedTool === "pen" || selectedTool === "eraser") { // added condition for shape
+        runOnJS(endPath)();
+      } 
+      if (selectedTool === "shape" && selectedShape) {
+        runOnJS(endShape)(e.x, e.y);
+      }
+    });
+
+  const onSelectTool = (tool) => {
+    if (["\u25cb","\u25a1","\u25cf","\u25a0"].includes(tool)) {
+      setSelectedTool("shape");
+      setSelectedShape(tool);
+    } else {
+      setSelectedTool(tool);
+      setSelectedShape(null);
+    }
+  };
+
+  const onSelectColor = (color) => setSelectedColor(color);
 
   return (
     //GestureDetector wraps around the canvas component [treated like a view] to capture any panGesture related events, its like when u drag an item on a screen
     //WE CAN EDIT THE STOKE RELATED THINGS ALONGSIDE THE COLOR!!!
-    <GestureDetector gesture={pan}> 
-      <Canvas style={{ flex: 1, backgroundColor: "white" }}>
-        {paths.map((fingerPath, index) => (
-          <Path
-            key={index}
-            path={fingerPath}
-            color="black"
-            style="stroke"
-            strokeWidth={3}
-            strokeJoin="round"
-            strokeCap="round"
-          />
-        ))}
-      </Canvas>
-    </GestureDetector>
+    <>
+      <GestureDetector gesture={pan}>
+        <Canvas style={{ flex: 1, backgroundColor: "white" }}>
+          {paths.map((item, index) => {
+            // pen
+            if (item.tool === "pen") {
+              return (
+                <Path
+                  key={index}
+                  path={item.path}
+                  color={item.color}
+                  style="stroke"
+                  strokeWidth={3} // temp
+                  strokeJoin="round"
+                  strokeCap="round"
+                />
+              );
+            }
+            // eraser
+            if (item.tool === "eraser") {
+              return (
+                <Path
+                  key={index}
+                  path={item.path}
+                  color="#FFFFFF"
+                  style="stroke"
+                  strokeWidth={10} // temp
+                />
+              );
+            }
+            // shapes
+            if (item.tool === "shape-fill") {
+              return (
+                <Path
+                  key={index}
+                  path={item.path}
+                  color={item.color}
+                  style="fill"
+                />
+              );
+            }
+          })}
+        </Canvas>
+      </GestureDetector>
+      <ToolBar onSelectTool={onSelectTool} onSelectColor={onSelectColor} currentTool={selectedTool}/>
+    </>
   );
 };
 
