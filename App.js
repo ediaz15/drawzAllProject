@@ -2,7 +2,7 @@
 import 'react-native-gesture-handler';
 import { runOnJS } from 'react-native-reanimated';
 
-import React, { Component, useState, useRef} from 'react';
+import React, { Component, useState, useRef, useEffect} from 'react';
 // import Text as Text from React Native
 import { Text, View, Platform, StyleSheet, Button, TouchableHighlight, ActivityIndicator} from 'react-native';
 // Navigation imports
@@ -10,6 +10,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { Pressable } from 'react-native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import ColorPicker from 'react-native-wheel-color-picker';
+import Slider from "@react-native-community/slider";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { Canvas, Path, Skia } from "@shopify/react-native-skia";
 
@@ -252,23 +253,6 @@ const Profile = ({navigation}) => {
   );
 };
 
-const BlankSketchPad = () => {
-  const [activeTool, setActiveTool] = useState ("pen"); // useState hook
-  
-  const handleSelectTool = (tool) => {
-    setActiveTool(tool);
-  };
-
-  return (
-    <View style = {[defaultStyles.sketchPad]}>
-      <DefaultText content = "Start a drawing here!"/>
-      <DefaultText content = {`Active Tool: ${activeTool}`}/>
-        {/* Bottom Toolbar below*/}
-        <ToolBar onSelectTool={handleSelectTool} activeTool={activeTool} />
-    </View>
-  );
-};
-
 const SavedDrawings = ({navigation}) => {
   const direct = () => navigation.navigate("Sketch Pad");
 
@@ -319,15 +303,18 @@ const DrawzAll = () => {
           },
         }}/>
         <Drawer.Screen name = "Sketch Pad" component = {BlankSketchPad} options = 
-        {{title: "Blank Sketch",
-          headerStyle: {
-            backgroundColor: '#232527ff',
-          },
-            headerTintColor: '#FFFFFF',
-            headerTitleStyle: {
-            fontWeight: '300',
-          },
-        }}/>
+          {({ navigation, route }) => ({
+            title: "Blank Sketch",
+            headerStyle: {backgroundColor: "#232527ff"},
+            headerTintColor: "#FFFFFF",
+            headerTitleStyle: {fontWeight: "300"},
+            headerRight: () => (
+              <View style={{ flexDirection: "row", gap: 10, marginRight: 10}}>
+                <Button title="Undo" onPress={() => route.params?.undo?.()} color="#ffcc00" />
+                <Button title="Redo" onPress={() => route.params?.redo?.()} color="#66ccff" />
+              </View>
+            )
+          })}/>
         <Drawer.Screen name = "Saved Drawings" component = {SavedDrawings} options = 
         {{  headerStyle: {
             backgroundColor: '#232527ff',
@@ -337,8 +324,8 @@ const DrawzAll = () => {
             fontWeight: '300',
           },
         }}/>
-        <Drawer.Screen name="Try to Draw" component={FreehandDrawing}>
-        </Drawer.Screen>
+        
+        
       </Drawer.Navigator>
     </NavigationContainer>
 
@@ -369,15 +356,37 @@ const ToolBar = ({ onSelectTool, onSelectColor, currentTool }) => {
   const [currentColor, setCurrentColor] = useState("#000000");  // default to black
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [previousTool, setPreviousTool] = useState("pen"); // to track after color 
+    /* 
+  const [brushSize, setBrushSize] = useState(3);
+  const [eraserSize, setEraserSize] = useState(10);
+  const [showBrushSizeSlider, setShowBrushSizeSlider] = useState(false);
+  const [showEraserSizeSlider, setShowEraserSizeSlider] = useState(false);
 
+  const minSize = 1;
+  const maxSize = 50;
+    */
   
   // catch for pressing other tools before shape option selected
   const handleToolPress = (tool) => {
     if (tool === "color") {
       setPreviousTool(currentTool);
       setShowColorPicker(true);
+      // setShowBrushSizeSlider(false);
+      // setShowEraserSizeSlider(false);
+    } else if (tool === "pen") {
+      // setShowBrushSizeSlider(true);
+      // setShowEraserSizeSlider(false);
+      setShowColorPicker(false);
+      onSelectTool(tool);
+    } else if (tool === "eraser") {
+      // setShowEraserSizeSlider(true);
+      // setShowBrushSizeSlider(false);
+      setShowColorPicker(false);
+      onSelectTool(tool);
     } else { 
       setShowColorPicker(false);
+      // setShowBrushSizeSlider(false);
+      // setShowEraserSizeSlider(false);
       onSelectTool(tool);
     }
   }
@@ -417,6 +426,7 @@ const ToolBar = ({ onSelectTool, onSelectColor, currentTool }) => {
         * TouchableHighlight allows for feedback on press, shows dropdown
         * After selecting shape or pressing another tool, dropdown disappears
         */}
+      
       <View style={toolStyles.shapeContainer}>
         <Button title="Shape" color="green" onPress={handleShapePress} />
         {showShapeOptions && (
@@ -439,6 +449,41 @@ const ToolBar = ({ onSelectTool, onSelectColor, currentTool }) => {
         * Uses react-native-wheel-color-picker
         */}
       <Button title="Color" color="orange" onPress={() => handleToolPress("color")} />
+      {/* 
+      {showBrushSizeSlider && (
+        <View style={toolStyles.sizeSliderContainer}>
+          <Text style={{ color: "white", marginBottom: 8 }}>Brush Size: {Math.round(brushSize)}px</Text>
+          <Slider
+            value={brushSize}
+            minimumValue={1}
+            maximumValue={50}
+            step={1}
+            style={{ width: 200, height: 40 }}
+            onValueChange={(value) => {
+              setBrushSize(value);
+              onSelectBrushSize(value);
+            }}
+          />
+        </View>
+      )}
+
+      {showEraserSizeSlider && (
+        <View style={toolStyles.sizeSliderContainer}>
+          <Text style={{ color: "white", marginBottom: 8 }}>Eraser Size: {Math.round(eraserSize)}px</Text>
+          <Slider
+            value={eraserSize}
+            minimumValue={1}
+            maximumValue={50}
+            step={1}
+            style={{ width: 200, height: 40 }}
+            onValueChange={(value) => {
+              setEraserSize(value);
+              onSelectEraserSize(value);
+            }}
+          />
+        </View>
+      )}
+      */}
       {showColorPicker && (
         <View style={toolStyles.colorPicker}>
           <ColorPicker
@@ -450,18 +495,17 @@ const ToolBar = ({ onSelectTool, onSelectColor, currentTool }) => {
             noSnap={true}
             row={false}
           />
-          {/* Buttons to hide the color picker
-            TODO: Make cancel button return color to color before opening wheel */}
+          {/* Buttons to hide the color picker */}
           <View style={toolStyles.colorConfirms}>
             <Button title="Done" color="green" onPress={() => {
                 setShowColorPicker(false);
                 onSelectTool(previousTool);
-            }}  
+            }}
             />
-            <Button title="Cancel" color="red" onPress={() => {
+            <Button title="Cancel" color="red" onPress={() => { 
               setShowColorPicker(false);
               onSelectTool(previousTool);
-              setCurrentColor(currentColor); // optional: revert to last confirmed color
+              setCurrentColor(currentColor);
             }}  
             />
           </View>
@@ -483,10 +527,11 @@ const ToolBar = ({ onSelectTool, onSelectColor, currentTool }) => {
  Pan Gesture https://docs.swmansion.com/react-native-gesture-handler/docs/gestures/pan-gesture/
 */
 
-const FreehandDrawing = ({}) => {
+const BlankSketchPad = ({ navigation, route}) => {
   //To track the actual gestures, we need to store the path that is made from the touch gestures
     //to store the path, we use an array that we continously append to that stores
   const [paths, setPaths] = useState([]);
+  const [redoStack, setRedoStack] = useState([]); // for undo/redo
   const currentPathRef = useRef(null);
   //pan gesture is when we drag something across the screen, imagine a pixel we drag and we store its coordinates
   
@@ -494,6 +539,8 @@ const FreehandDrawing = ({}) => {
   const [selectedTool, setSelectedTool] = useState("pen");
   const [selectedColor, setSelectedColor] = useState("#000000");
   const [selectedShape, setSelectedShape] = useState(null);
+  const [brushSize, setBrushSize] = useState(3);
+  const [eraserSize, setEraserSize] = useState(10);
 
   const shapeStartRef = useRef(null); // shape coordinates
 
@@ -508,9 +555,11 @@ const FreehandDrawing = ({}) => {
       path: fingerPath,
       tool: selectedTool,
       color: selectedColor,
+      strokeWidth: selectedTool === "pen" ? brushSize : eraserSize,
     };
 
     setPaths((prev) => [...prev, currentPathRef.current]);
+    setRedoStack([]);
   };
 
   // minor conditional update to check beforehand
@@ -525,6 +574,28 @@ const FreehandDrawing = ({}) => {
   const endPath = () => {
     currentPathRef.current = null;
   };
+
+  const undo = () => {
+    setPaths(prev => {
+      if (prev.length === 0) return prev; // can't undo without paths
+      const last = prev[prev.length - 1]
+      setRedoStack(r => [...r, last]);
+      return prev.slice(0, -1);
+    });
+  };
+
+  const redo = () => {
+    setRedoStack(prev => {
+      if (prev.length === 0) return prev; // redo empty
+      const last = prev[prev.length - 1]
+      setPaths(p => [...p, last]);
+      return prev.slice(0, -1);
+    });
+  };
+
+  useEffect(() => {
+    navigation.setParams({ undo, redo });
+  }, [paths, redoStack]);
 
   //to actually update our array of coordinates, we need to copy over the elements (coordinates) and continuosly extend the length
   // SINCE every path is basically a new line, we create a new path to track it
@@ -571,6 +642,7 @@ const FreehandDrawing = ({}) => {
     ]);
 
     shapeStartRef.current = null;
+    setRedoStack([]);
   };
 
   //to make the drag work,we call the onstart, onupdate, and onend functions with their inputs as the event coordinates
@@ -608,12 +680,14 @@ const FreehandDrawing = ({}) => {
   };
 
   const onSelectColor = (color) => setSelectedColor(color);
+  const onSelectBrushSize = (size) => setBrushSize(size);
+  const onSelectEraserSize = (size) => setEraserSize(size);
 
   return (
     //GestureDetector wraps around the canvas component [treated like a view] to capture any panGesture related events, its like when u drag an item on a screen
     //WE CAN EDIT THE STOKE RELATED THINGS ALONGSIDE THE COLOR!!!
-    <>
-      <GestureDetector gesture={pan}>
+    <View style={{ flex: 1, flexDirection: 'column' }}>
+      <GestureDetector gesture={pan} style={{ flex: 1 }}>
         <Canvas style={{ flex: 1, backgroundColor: "white" }}>
           {paths.map((item, index) => {
             // pen
@@ -624,7 +698,7 @@ const FreehandDrawing = ({}) => {
                   path={item.path}
                   color={item.color}
                   style="stroke"
-                  strokeWidth={3} // temp
+                  strokeWidth={item.strokeWidth || brushSize}
                   strokeJoin="round"
                   strokeCap="round"
                 />
@@ -638,7 +712,7 @@ const FreehandDrawing = ({}) => {
                   path={item.path}
                   color="#FFFFFF"
                   style="stroke"
-                  strokeWidth={10} // temp
+                  strokeWidth={item.strokeWidth || eraserSize}
                 />
               );
             }
@@ -656,8 +730,12 @@ const FreehandDrawing = ({}) => {
           })}
         </Canvas>
       </GestureDetector>
-      <ToolBar onSelectTool={onSelectTool} onSelectColor={onSelectColor} currentTool={selectedTool}/>
-    </>
+      <ToolBar 
+        onSelectTool={onSelectTool} 
+        onSelectColor={onSelectColor} 
+        currentTool={selectedTool}
+      />
+    </View>
   );
 };
 
@@ -679,9 +757,6 @@ const toolStyles = StyleSheet.create({
     borderTopWidth: 1,
     borderColor: "#232527ff",
     backgroundColor: "#282c2e",
-    position: "absolute",
-    bottom: 0,
-    width: "100%",
   },
   shapeContainer: { // General styling for shape button and dropdown
     position: 'relative',
@@ -732,6 +807,25 @@ const toolStyles = StyleSheet.create({
     justifyContent: "space-around", 
     marginTop: 10 
   },
+  sliderOption: {
+    marginTop: 12,
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 8
+  },
+  sizeSliderContainer: {
+    position: 'absolute',
+    bottom: 70,
+    left: 0,
+    right: 0,
+    backgroundColor: "#282c2e",
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    padding: 15,
+    alignItems: "center",
+    zIndex: 100,
+    elevation: 10,
+  }
 });
 
 // export default reference - BasicApp
