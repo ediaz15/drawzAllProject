@@ -10,4 +10,6 @@ npm install react-native-gesture-handler@latest
 npm install react-native-worklets
 npm install @shopify/react-native-skia
 npm install @react-native-community/slider
-
+npm install react-native-mmkv
+npm install react-native-nitro-modules
+npm install react-native-fs --save

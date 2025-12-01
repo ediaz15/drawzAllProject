@@ -65,6 +65,10 @@ import android.os.Bundle;
 https://reactnavigation.org/docs/getting-started
 ^^More context to why this is needed^^
 
+https://github.com/mrousavy/react-native-mmkv
+^^ explains the usage of nitro modules
+
+
 IN THE CASE THAT STUFF AINT WORKING:
 delete node_modules from the project directory
 then do 

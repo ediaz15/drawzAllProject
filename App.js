@@ -13,10 +13,11 @@ import ColorPicker from 'react-native-wheel-color-picker';
 import Slider from "@react-native-community/slider";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { Canvas, Path, Skia } from "@shopify/react-native-skia";
-
+import { PermissionsAndroid } from 'react-native';
+import { createMMKV } from 'react-native-mmkv';
 
 const Drawer = createDrawerNavigator();
-
+export const storage = createMMKV();
 // Default Stylesheet (just to separate the defaults from special cases)
 const defaultStyles = StyleSheet.create({
   homepage: {
@@ -184,6 +185,29 @@ const DefaultText = (props) => {
   );
 }
 
+  /*Local storage permissions from week 11 notes -> lets us access storage*/
+const requestStoragePermission = async () => {
+  try {
+    const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
+    {
+      title: "Storage Permission",
+      message: "App needs access to your storage to save drawings",
+      buttonNeutral: "Ask Me Later",
+      buttonNegative: "Cancel",
+      buttonPositive: "OK"
+    }
+  );
+    if (granted === PermissionsAndroid.RESULTS.GRANTED){
+      console.log("You can use the storage");
+    } else {
+      console.log("Storage permission denied");
+    }
+  } catch (err){
+      console.warn(err);
+  }
+}
+
 const HomePage = ({ navigation }) => { // added navigation function parameter
 
   const direct = () => navigation.navigate("Sketch Pad"); // fixed typo, removed props. and set to const
@@ -243,6 +267,11 @@ const Profile = ({navigation}) => {
       <View style = {defaultStyles.midPage}>
         <ActivityIndicator size="large" color="#000000ff" />
         <DefaultText content = "Fetching profile details..."/>
+        <Button
+          title="Request Storage Permission"
+          color="#007AFF"
+          onPress={requestStoragePermission}
+        />
       </View>
       <View style = {defaultStyles.bottomPage}>
         <Text style = {defaultStyles.lightText}>
