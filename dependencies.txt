@@ -9,6 +9,7 @@ npm install react-native@latest metro-react-native-babel-preset@latest
 npm install react-native-gesture-handler@latest
 npm install react-native-worklets
 npm install @shopify/react-native-skia
+npm install @react-native-community/slider
 npm install @react-navigation/native-stack
 npm install @react-native-async-storage/async-storage
 

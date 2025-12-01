@@ -9,8 +9,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { Pressable } from 'react-native';
 // Drawing Imports
 import ColorPicker from 'react-native-wheel-color-picker';
+import Slider from "@react-native-community/slider";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { Canvas, Path, Skia } from "@shopify/react-native-skia";
 // Style imports
@@ -328,32 +330,6 @@ const SavedDrawings = ({navigation, route}) => {
   );
 };
 
-/*
-  V Redundant with FreehandDrawing component V
-
-
-const BlankSketchPad = () => {
-  const [activeTool, setActiveTool] = useState ("pen"); // useState hook
-  
-  const handleSelectTool = (tool) => {
-    setActiveTool(tool);
-  };
-
-  return (
-    <View style = {[defaultStyles.sketchPad]}>
-      <Text style = {defaultStyles.darkText}>
-        Start a drawing here!
-      </Text>
-      <Text style = {defaultStyles.darkText}>
-        {`Active Tool: ${activeTool}`}
-      </Text>
-        {}
-        <ToolBar onSelectTool={handleSelectTool} activeTool={activeTool} />
-    </View>
-  );
-};
-*/
-
 // App - define initial app component
 const DrawzAll = () => {
   // fixed a naming mismatch
@@ -380,7 +356,7 @@ const DrawzAll = () => {
             fontWeight: '300',
           },
         }}/>
-        <Drawer.Screen name = "Sketch Pad" component = {FreehandDrawing} options = 
+        <Drawer.Screen name = "Sketch Pad" component = {BlankSketchPad} options = 
         {{  headerStyle: {
             backgroundColor: '#232527ff',
           },
@@ -410,6 +386,8 @@ const GalleryStack = () => {
             fontWeight: '300',
           },
         }}/>
+        
+        
       <Stack.Screen name = "Saved Drawings" component = {SavedDrawings} options = 
         {{
             title: "Saved Drawing",
@@ -469,12 +447,61 @@ const ToolBar = ({ onSelectTool, onSelectColor, currentTool }) => {
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [previousTool, setPreviousTool] = useState("pen"); // to track after color 
 
+  // sizes and visibility for sliders
+  const [brushSize, setBrushSize] = useState(parentBrushSize || 3); // for size slider
+  const [eraserSize, setEraserSize] = useState(parentEraserSize || 10);
+  const [showBrushSizeSlider, setShowBrushSizeSlider] = useState(false);
+  const [showEraserSizeSlider, setShowEraserSizeSlider] = useState(false);
+
+  const minSize = 1;
+  const maxSize = 50;
+
+  // timer-based double-tap detection
+  // logic moved because it didnt stay open when embedded in GestureDetector
+  const brushTapTimeRef = useRef(null);
+  const eraserTapTimeRef = useRef(null);
+
+  const handleBrushTap = () => {
+    const now = Date.now(); // use date to track time between taps
+    if (brushTapTimeRef.current && now - brushTapTimeRef.current < 300) { // checks 0.3ms interval double tap
+      // Double-tap detected
+      setShowBrushSizeSlider(s => !s);
+      brushTapTimeRef.current = null; // reset 
+    } else {
+      // Single-tap: select tool
+      brushTapTimeRef.current = now;
+      handleToolPress("pen");
+    }
+  };
+
+  const handleEraserTap = () => {
+    const now = Date.now();
+    if (eraserTapTimeRef.current && now - eraserTapTimeRef.current < 300) {
+      // Double-tap detected
+      setShowEraserSizeSlider(s => !s);
+      eraserTapTimeRef.current = null; // reset
+    } else {
+      // Single-tap: select tool
+      eraserTapTimeRef.current = now;
+      handleToolPress("eraser");
+    }
+  };
   
   // catch for pressing other tools before shape option selected
   const handleToolPress = (tool) => {
     if (tool === "color") {
       setPreviousTool(currentTool);
       setShowColorPicker(true);
+    } else if (tool === "pen") {
+      // single tap selects pen (double-tap handled separately by handleBrushTap)
+      setShowEraserSizeSlider(false);
+      setShowColorPicker(false);
+      onSelectTool(tool);
+    } else if (tool === "eraser") {
+      // single tap selects eraser (double-tap handled separately by handleEraserTap)
+      setShowBrushSizeSlider(false);
+      setShowColorPicker(false);
+      onSelectTool(tool);
     } else { 
       setShowColorPicker(false);
       onSelectTool(tool);
@@ -509,13 +536,49 @@ const ToolBar = ({ onSelectTool, onSelectColor, currentTool }) => {
     <View style={toolStyles.container}>
       
 
-      <Button title="Pen" color="blue" onPress={() => handleToolPress("pen")} />
-      <Button title="Eraser" color="red" onPress={() => handleToolPress("eraser")} />
+      {/* Pen button: single tap selects tool, double-tap handled in handleBrushTap */}
+      <Button title="Pen" color="blue" onPress={handleBrushTap} />
+
+      {/* Eraser button: single tap selects tool, double-tap handled in handleEraserTap */}
+      <Button title="Eraser" color="red" onPress={handleEraserTap} />
+        
+      {/* old code for double tap below
+            {
+        (() => {
+          const toggleBrush = () => setShowBrushSizeSlider(s => !s);
+          const penTapGesture = Gesture.Tap().numberOfTaps(2).onEnd(() => runOnJS(toggleBrush)());
+          return (
+            <GestureDetector gesture={penTapGesture}>
+              <View>
+                <Button title="Pen" color="blue" onPress={() => handleToolPress("pen")} />
+              </View>
+            </GestureDetector>
+          );
+        })()
+      }
+
+      {
+        (() => {
+          const toggleEraser = () => setShowEraserSizeSlider(s => !s);
+          const eraserTapGesture = Gesture.Tap().numberOfTaps(2).onEnd(() => runOnJS(toggleEraser)());
+          return (
+            <GestureDetector gesture={eraserTapGesture}>
+              <View>
+                <Button title="Eraser" color="red" onPress={() => handleToolPress("eraser")} />
+              </View>
+            </GestureDetector>
+          );
+        })()
+      }
+      */}
+        
+        
         {/* Shape options dropdown 
         * Unicode characters used for shapes
         * TouchableHighlight allows for feedback on press, shows dropdown
         * After selecting shape or pressing another tool, dropdown disappears
         */}
+      
       <View style={toolStyles.shapeContainer}>
         <Button title="Shape" color="green" onPress={handleShapePress} />
         {showShapeOptions && (
@@ -549,20 +612,59 @@ const ToolBar = ({ onSelectTool, onSelectColor, currentTool }) => {
             noSnap={true}
             row={false}
           />
-          {/* Buttons to hide the color picker
-            TODO: Make cancel button return color to color before opening wheel */}
+          {/* Buttons to hide the color picker */}
           <View style={toolStyles.colorConfirms}>
             <Button title="Done" color="green" onPress={() => {
                 setShowColorPicker(false);
                 onSelectTool(previousTool);
-            }}  
+            }}
             />
-            <Button title="Cancel" color="red" onPress={() => {
+            <Button title="Cancel" color="red" onPress={() => { 
               setShowColorPicker(false);
               onSelectTool(previousTool);
-              setCurrentColor(currentColor); // optional: revert to last confirmed color
+              setCurrentColor(currentColor);
             }}  
             />
+          </View>
+        </View>
+      )}
+      {/* brush size slider, uncommented from before */}
+      {showBrushSizeSlider && ( 
+        <View style={toolStyles.sizeSliderContainer}>
+          <Text style={{ color: "white", marginBottom: 8 }}>{Math.round(brushSize)}px</Text>
+          <Slider
+            value={brushSize}
+            minimumValue={minSize}
+            maximumValue={maxSize}
+            step={1}
+            style={{ width: 200, height: 40 }}
+            onValueChange={(value) => {
+              setBrushSize(value);
+              if (onSelectBrushSize) onSelectBrushSize(value);
+            }}
+          />
+          <View style={toolStyles.colorConfirms}>
+            <Button title="Done" color="green" onPress={() => setShowBrushSizeSlider(false)} />
+          </View>
+        </View>
+      )}
+
+      {showEraserSizeSlider && (
+        <View style={toolStyles.sizeSliderContainer}>
+          <Text style={{ color: "white", marginBottom: 8 }}>{Math.round(eraserSize)}px</Text>
+          <Slider
+            value={eraserSize}
+            minimumValue={minSize}
+            maximumValue={maxSize}
+            step={1}
+            style={{ width: 200, height: 40 }}
+            onValueChange={(value) => {
+              setEraserSize(value);
+              if (onSelectEraserSize) onSelectEraserSize(value);
+            }}
+          />
+          <View style={toolStyles.colorConfirms}>
+            <Button title="Done" color="green" onPress={() => setShowEraserSizeSlider(false)} />
           </View>
         </View>
       )}
@@ -582,10 +684,11 @@ const ToolBar = ({ onSelectTool, onSelectColor, currentTool }) => {
  Pan Gesture https://docs.swmansion.com/react-native-gesture-handler/docs/gestures/pan-gesture/
 */
 
-const FreehandDrawing = ({}) => {
+const BlankSketchPad = ({ navigation, route}) => {
   //To track the actual gestures, we need to store the path that is made from the touch gestures
     //to store the path, we use an array that we continously append to that stores
   const [paths, setPaths] = useState([]);
+  const [redoStack, setRedoStack] = useState([]); // for undo/redo
   const currentPathRef = useRef(null);
   //pan gesture is when we drag something across the screen, imagine a pixel we drag and we store its coordinates
   
@@ -593,8 +696,11 @@ const FreehandDrawing = ({}) => {
   const [selectedTool, setSelectedTool] = useState("pen");
   const [selectedColor, setSelectedColor] = useState("#000000");
   const [selectedShape, setSelectedShape] = useState(null);
+  const [brushSize, setBrushSize] = useState(3);
+  const [eraserSize, setEraserSize] = useState(10);
 
   const shapeStartRef = useRef(null); // shape coordinates
+  const [previewShape, setPreviewShape] = useState(null); // for shape preview
 
   //onStartPath refers to the first touch portion of the pan gesture, so its the moment your finger touches the screen
   //We make a path and we track is x,y position
@@ -607,9 +713,11 @@ const FreehandDrawing = ({}) => {
       path: fingerPath,
       tool: selectedTool,
       color: selectedColor,
+      strokeWidth: selectedTool === "pen" ? brushSize : eraserSize,
     };
 
     setPaths((prev) => [...prev, currentPathRef.current]);
+    setRedoStack([]);
   };
 
   // minor conditional update to check beforehand
@@ -625,6 +733,28 @@ const FreehandDrawing = ({}) => {
     currentPathRef.current = null;
   };
 
+  const undo = () => {
+    setPaths(prev => {
+      if (prev.length === 0) return prev; // can't undo without paths
+      const last = prev[prev.length - 1]
+      setRedoStack(r => [...r, last]);
+      return prev.slice(0, -1);
+    });
+  };
+
+  const redo = () => {
+    setRedoStack(prev => {
+      if (prev.length === 0) return prev; // redo empty
+      const last = prev[prev.length - 1]
+      setPaths(p => [...p, last]);
+      return prev.slice(0, -1);
+    });
+  };
+
+  useEffect(() => {
+    navigation.setParams({ undo, redo });
+  }, [paths, redoStack]);
+
   //to actually update our array of coordinates, we need to copy over the elements (coordinates) and continuosly extend the length
   // SINCE every path is basically a new line, we create a new path to track it
   //to actually render it, we need to store all the paths
@@ -633,6 +763,47 @@ const FreehandDrawing = ({}) => {
   // shape handlers below
   const startShape = (x, y) => {
     shapeStartRef.current = { x, y };
+  };
+
+  // shape preview code, goes until click/tap released
+  const updateShapePreview = (x, y) => {
+    const start = shapeStartRef.current;
+    if (!start) return;
+    const { x: startx, y: starty } = start;
+    const endx = x, endy = y;
+
+    const shapePath = Skia.Path.Make();
+
+    const shape = selectedShape;
+    const isFilled = shape === '\u25cf' || shape === '\u25a0';
+    const isCircle = shape === '\u25cb' || shape === '\u25cf';
+
+    if (isCircle) {
+      const minX = Math.min(startx, endx);
+      const maxX = Math.max(startx, endx);
+      const minY = Math.min(starty, endy);
+      const maxY = Math.max(starty, endy);
+      shapePath.addOval({
+        x: minX,
+        y: minY,
+        width: maxX - minX,
+        height: maxY - minY,
+      });
+    } else {
+      shapePath.addRect({
+        x: Math.min(startx, endx),
+        y: Math.min(starty, endy),
+        width: Math.abs(endx - startx),
+        height: Math.abs(endy - starty),
+      });
+    }
+
+    setPreviewShape({
+      path: shapePath,
+      color: selectedColor,
+      tool: isFilled ? "shape-fill" : "shape",
+      strokeWidth: brushSize,
+    });
   };
 
   const endShape = (x, y) => {
@@ -648,9 +819,19 @@ const FreehandDrawing = ({}) => {
     const isFilled = shape === '\u25cf' || shape === '\u25a0';
     const isCircle = shape === '\u25cb' || shape === '\u25cf';
 
-    if (isCircle) {
-      const radius = Math.sqrt((startx - endx) ** 2 + (starty - endy) ** 2);
-      shapePath.addCircle(startx, starty, radius);
+    if (isCircle) { // code for properly drawing circles/ellipses
+      // Calculate bounding box with start and end as opposite corners
+      const minX = Math.min(startx, endx);
+      const maxX = Math.max(startx, endx);
+      const minY = Math.min(starty, endy);
+      const maxY = Math.max(starty, endy);
+
+      shapePath.addOval({
+        x: minX,
+        y: minY,
+        width: maxX - minX,
+        height: maxY - minY,
+      });
     } else {
       shapePath.addRect({
         x: Math.min(startx, endx),
@@ -665,11 +846,15 @@ const FreehandDrawing = ({}) => {
       {
         path: shapePath,
         color: selectedColor,
-        tool: isFilled ? "shape-fill" : "shape"
+        tool: isFilled ? "shape-fill" : "shape",
+        strokeWidth: brushSize
       }
     ]);
 
     shapeStartRef.current = null;
+    // clear preview when shape released
+    setPreviewShape(null);
+    setRedoStack([]);
   };
 
   //to make the drag work,we call the onstart, onupdate, and onend functions with their inputs as the event coordinates
@@ -684,15 +869,18 @@ const FreehandDrawing = ({}) => {
     })
     .onUpdate((e) => {
       if (selectedTool === "pen" || selectedTool === "eraser") { // only for these, dont update shapes right away
-        runOnJS(updatePath)(e.x, e.y);
+          runOnJS(updatePath)(e.x, e.y);
       }
+        if (selectedTool === "shape" && selectedShape) { 
+          runOnJS(updateShapePreview)(e.x, e.y);
+        }
     })
     .onEnd((e) => {
       if (selectedTool === "pen" || selectedTool === "eraser") { // added condition for shape
         runOnJS(endPath)();
       } 
       if (selectedTool === "shape" && selectedShape) {
-        runOnJS(endShape)(e.x, e.y);
+          runOnJS(endShape)(e.x, e.y);
       }
     });
 
@@ -707,12 +895,14 @@ const FreehandDrawing = ({}) => {
   };
 
   const onSelectColor = (color) => setSelectedColor(color);
+  const onSelectBrushSize = (size) => setBrushSize(size);
+  const onSelectEraserSize = (size) => setEraserSize(size);
 
   return (
     //GestureDetector wraps around the canvas component [treated like a view] to capture any panGesture related events, its like when u drag an item on a screen
     //WE CAN EDIT THE STOKE RELATED THINGS ALONGSIDE THE COLOR!!!
-    <>
-      <GestureDetector gesture={pan}>
+    <View style={{ flex: 1, flexDirection: 'column' }}>
+      <GestureDetector gesture={pan} style={{ flex: 1 }}>
         <Canvas style={{ flex: 1, backgroundColor: "white" }}>
           {paths.map((item, index) => {
             // pen
@@ -723,7 +913,7 @@ const FreehandDrawing = ({}) => {
                   path={item.path}
                   color={item.color}
                   style="stroke"
-                  strokeWidth={3} // temp
+                  strokeWidth={item.strokeWidth || brushSize}
                   strokeJoin="round"
                   strokeCap="round"
                 />
@@ -737,11 +927,11 @@ const FreehandDrawing = ({}) => {
                   path={item.path}
                   color="#FFFFFF"
                   style="stroke"
-                  strokeWidth={10} // temp
+                  strokeWidth={item.strokeWidth || eraserSize}
                 />
               );
             }
-            // shapes
+            // shapes filled
             if (item.tool === "shape-fill") {
               return (
                 <Path
@@ -752,11 +942,45 @@ const FreehandDrawing = ({}) => {
                 />
               );
             }
+            // shapes outline, width = pen width
+            if (item.tool === "shape") {
+              return (
+                <Path
+                  key={index}
+                  path={item.path}
+                  color={item.color}
+                  style="stroke"
+                  strokeWidth={item.strokeWidth || brushSize}
+                  strokeJoin="round"
+                  strokeCap="round"
+                />
+              );
+            }
           })}
+          {/* shape preview below */}
+          {previewShape && (
+            <Path
+              key="preview"
+              path={previewShape.path}
+              color={previewShape.color}
+              style={previewShape.tool === "shape-fill" ? "fill" : "stroke"}
+              strokeWidth={previewShape.strokeWidth || brushSize}
+              strokeJoin="round"
+              strokeCap="round"
+            />
+          )}
         </Canvas>
       </GestureDetector>
-      <ToolBar onSelectTool={onSelectTool} onSelectColor={onSelectColor} currentTool={selectedTool}/>
-    </>
+      <ToolBar 
+        onSelectTool={onSelectTool} 
+        onSelectColor={onSelectColor} 
+        currentTool={selectedTool}
+        onSelectBrushSize={onSelectBrushSize}
+        onSelectEraserSize={onSelectEraserSize}
+        brushSize={brushSize}
+        eraserSize={eraserSize}
+      />
+    </View>
   );
 };
 
