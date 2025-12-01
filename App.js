@@ -348,7 +348,7 @@ const DrawzAll = () => {
  */
 
 
-const ToolBar = ({ onSelectTool, onSelectColor, currentTool }) => {
+const ToolBar = ({ onSelectTool, onSelectColor, currentTool, onSelectBrushSize, onSelectEraserSize, brushSize: parentBrushSize, eraserSize: parentEraserSize }) => { // added fields for size sliders
 
   // for shape select
   const [showShapeOptions, setShowShapeOptions] = useState(false);
@@ -356,37 +356,64 @@ const ToolBar = ({ onSelectTool, onSelectColor, currentTool }) => {
   const [currentColor, setCurrentColor] = useState("#000000");  // default to black
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [previousTool, setPreviousTool] = useState("pen"); // to track after color 
-    /* 
-  const [brushSize, setBrushSize] = useState(3);
-  const [eraserSize, setEraserSize] = useState(10);
+
+  // sizes and visibility for sliders
+  const [brushSize, setBrushSize] = useState(parentBrushSize || 3); // for size slider
+  const [eraserSize, setEraserSize] = useState(parentEraserSize || 10);
   const [showBrushSizeSlider, setShowBrushSizeSlider] = useState(false);
   const [showEraserSizeSlider, setShowEraserSizeSlider] = useState(false);
 
   const minSize = 1;
   const maxSize = 50;
-    */
+
+  // timer-based double-tap detection
+  // logic moved because it didnt stay open when embedded in GestureDetector
+  const brushTapTimeRef = useRef(null);
+  const eraserTapTimeRef = useRef(null);
+
+  const handleBrushTap = () => {
+    const now = Date.now(); // use date to track time between taps
+    if (brushTapTimeRef.current && now - brushTapTimeRef.current < 300) { // checks 0.3ms interval double tap
+      // Double-tap detected
+      setShowBrushSizeSlider(s => !s);
+      brushTapTimeRef.current = null; // reset 
+    } else {
+      // Single-tap: select tool
+      brushTapTimeRef.current = now;
+      handleToolPress("pen");
+    }
+  };
+
+  const handleEraserTap = () => {
+    const now = Date.now();
+    if (eraserTapTimeRef.current && now - eraserTapTimeRef.current < 300) {
+      // Double-tap detected
+      setShowEraserSizeSlider(s => !s);
+      eraserTapTimeRef.current = null; // reset
+    } else {
+      // Single-tap: select tool
+      eraserTapTimeRef.current = now;
+      handleToolPress("eraser");
+    }
+  };
   
   // catch for pressing other tools before shape option selected
   const handleToolPress = (tool) => {
     if (tool === "color") {
       setPreviousTool(currentTool);
       setShowColorPicker(true);
-      // setShowBrushSizeSlider(false);
-      // setShowEraserSizeSlider(false);
     } else if (tool === "pen") {
-      // setShowBrushSizeSlider(true);
-      // setShowEraserSizeSlider(false);
+      // single tap selects pen (double-tap handled separately by handleBrushTap)
+      setShowEraserSizeSlider(false);
       setShowColorPicker(false);
       onSelectTool(tool);
     } else if (tool === "eraser") {
-      // setShowEraserSizeSlider(true);
-      // setShowBrushSizeSlider(false);
+      // single tap selects eraser (double-tap handled separately by handleEraserTap)
+      setShowBrushSizeSlider(false);
       setShowColorPicker(false);
       onSelectTool(tool);
     } else { 
       setShowColorPicker(false);
-      // setShowBrushSizeSlider(false);
-      // setShowEraserSizeSlider(false);
       onSelectTool(tool);
     }
   }
@@ -419,8 +446,43 @@ const ToolBar = ({ onSelectTool, onSelectColor, currentTool }) => {
     <View style={toolStyles.container}>
       
 
-      <Button title="Pen" color="blue" onPress={() => handleToolPress("pen")} />
-      <Button title="Eraser" color="red" onPress={() => handleToolPress("eraser")} />
+      {/* Pen button: single tap selects tool, double-tap handled in handleBrushTap */}
+      <Button title="Pen" color="blue" onPress={handleBrushTap} />
+
+      {/* Eraser button: single tap selects tool, double-tap handled in handleEraserTap */}
+      <Button title="Eraser" color="red" onPress={handleEraserTap} />
+        
+      {/* old code for double tap below
+            {
+        (() => {
+          const toggleBrush = () => setShowBrushSizeSlider(s => !s);
+          const penTapGesture = Gesture.Tap().numberOfTaps(2).onEnd(() => runOnJS(toggleBrush)());
+          return (
+            <GestureDetector gesture={penTapGesture}>
+              <View>
+                <Button title="Pen" color="blue" onPress={() => handleToolPress("pen")} />
+              </View>
+            </GestureDetector>
+          );
+        })()
+      }
+
+      {
+        (() => {
+          const toggleEraser = () => setShowEraserSizeSlider(s => !s);
+          const eraserTapGesture = Gesture.Tap().numberOfTaps(2).onEnd(() => runOnJS(toggleEraser)());
+          return (
+            <GestureDetector gesture={eraserTapGesture}>
+              <View>
+                <Button title="Eraser" color="red" onPress={() => handleToolPress("eraser")} />
+              </View>
+            </GestureDetector>
+          );
+        })()
+      }
+      */}
+        
+        
         {/* Shape options dropdown 
         * Unicode characters used for shapes
         * TouchableHighlight allows for feedback on press, shows dropdown
@@ -449,41 +511,6 @@ const ToolBar = ({ onSelectTool, onSelectColor, currentTool }) => {
         * Uses react-native-wheel-color-picker
         */}
       <Button title="Color" color="orange" onPress={() => handleToolPress("color")} />
-      {/* 
-      {showBrushSizeSlider && (
-        <View style={toolStyles.sizeSliderContainer}>
-          <Text style={{ color: "white", marginBottom: 8 }}>Brush Size: {Math.round(brushSize)}px</Text>
-          <Slider
-            value={brushSize}
-            minimumValue={1}
-            maximumValue={50}
-            step={1}
-            style={{ width: 200, height: 40 }}
-            onValueChange={(value) => {
-              setBrushSize(value);
-              onSelectBrushSize(value);
-            }}
-          />
-        </View>
-      )}
-
-      {showEraserSizeSlider && (
-        <View style={toolStyles.sizeSliderContainer}>
-          <Text style={{ color: "white", marginBottom: 8 }}>Eraser Size: {Math.round(eraserSize)}px</Text>
-          <Slider
-            value={eraserSize}
-            minimumValue={1}
-            maximumValue={50}
-            step={1}
-            style={{ width: 200, height: 40 }}
-            onValueChange={(value) => {
-              setEraserSize(value);
-              onSelectEraserSize(value);
-            }}
-          />
-        </View>
-      )}
-      */}
       {showColorPicker && (
         <View style={toolStyles.colorPicker}>
           <ColorPicker
@@ -508,6 +535,46 @@ const ToolBar = ({ onSelectTool, onSelectColor, currentTool }) => {
               setCurrentColor(currentColor);
             }}  
             />
+          </View>
+        </View>
+      )}
+      {/* brush size slider, uncommented from before */}
+      {showBrushSizeSlider && ( 
+        <View style={toolStyles.sizeSliderContainer}>
+          <Text style={{ color: "white", marginBottom: 8 }}>{Math.round(brushSize)}px</Text>
+          <Slider
+            value={brushSize}
+            minimumValue={minSize}
+            maximumValue={maxSize}
+            step={1}
+            style={{ width: 200, height: 40 }}
+            onValueChange={(value) => {
+              setBrushSize(value);
+              if (onSelectBrushSize) onSelectBrushSize(value);
+            }}
+          />
+          <View style={toolStyles.colorConfirms}>
+            <Button title="Done" color="green" onPress={() => setShowBrushSizeSlider(false)} />
+          </View>
+        </View>
+      )}
+
+      {showEraserSizeSlider && (
+        <View style={toolStyles.sizeSliderContainer}>
+          <Text style={{ color: "white", marginBottom: 8 }}>{Math.round(eraserSize)}px</Text>
+          <Slider
+            value={eraserSize}
+            minimumValue={minSize}
+            maximumValue={maxSize}
+            step={1}
+            style={{ width: 200, height: 40 }}
+            onValueChange={(value) => {
+              setEraserSize(value);
+              if (onSelectEraserSize) onSelectEraserSize(value);
+            }}
+          />
+          <View style={toolStyles.colorConfirms}>
+            <Button title="Done" color="green" onPress={() => setShowEraserSizeSlider(false)} />
           </View>
         </View>
       )}
@@ -734,6 +801,10 @@ const BlankSketchPad = ({ navigation, route}) => {
         onSelectTool={onSelectTool} 
         onSelectColor={onSelectColor} 
         currentTool={selectedTool}
+        onSelectBrushSize={onSelectBrushSize}
+        onSelectEraserSize={onSelectEraserSize}
+        brushSize={brushSize}
+        eraserSize={eraserSize}
       />
     </View>
   );
