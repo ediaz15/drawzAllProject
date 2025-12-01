@@ -51,10 +51,23 @@ const SubHeader = (props) => {
   );
 }
 
+// More stylish button component
+const NicerButton = (props) => {
+  return (
+    <TouchableOpacity
+      onPress={props.onPress}
+      style={props.style}
+      accessibilityLabel={props.accessibilityLabel}
+      activeOpacity={props.activeOpacity}
+    >
+      <Text style={[props.textStyle]}>{props.children}</Text>
+    </TouchableOpacity>
+  );
+};
+
 const HomePage = ({ navigation }) => { // added navigation function parameter
 
-  const direct = () => navigation.navigate("Sketch Pad"); // fixed typo, removed props. and set to const
-  const galleryDirect = () => navigation.navigate("Gallery");
+  const navTo = (props) => navigation.navigate(props.location);
 
   return (
     <View style = {homeStyles.homepage}>
@@ -63,23 +76,34 @@ const HomePage = ({ navigation }) => { // added navigation function parameter
           Home
         </PageHeader>
         <SubHeader>
-          Thanks for choosing DrawzAll!
+          {`\nThanks for choosing DrawzAll!`}
         </SubHeader>
       </View>
-      <View style = {homeStyles.midPage}>
-        <Text style = {defaultStyles.lightText}>
-          "Tap one of the buttons below to get started!"
-        </Text> 
-        <Button
-          color = "#282c2e"
-          title = "Click for a Blank Sketchpad!"
-          onPress = {direct}
-        />
-        <Button
-          color = "#282c2e"
-          title = "Go to Gallery Page"
-          onPress = {galleryDirect}
-        />
+      <View style = {homeStyles.topMidPage}>
+      </View>
+      <View style = {homeStyles.midPageWrapper}>
+        <ImageBackground source={require('./images/homepageL.jpg')} style = {homeStyles.midPageL}>
+          <NicerButton
+            style={[homeStyles.homeButton, {backgroundColor: "#6eeeffff"}]}
+            textStyle={[homeStyles.homeButtonText, {color: "#060606ff"}]}
+            onPress={() => navTo({location: "Sketch Pad"})}
+            accessibilityLabel="Click for a Blank Sketchpad!"
+            activeOpacity={0.5}
+          >
+            {`Click for a\n\nBlank\n\nSketchpad!`}
+          </NicerButton>
+        </ImageBackground>
+        <ImageBackground source={require('./images/homepageR.jpg')} style = {homeStyles.midPageR}>
+          <NicerButton
+            style={[homeStyles.homeButton, {backgroundColor: "#ff3700ff"}]}
+            textStyle={[homeStyles.homeButtonText, {color: "#060606ff"}]}
+            onPress = {() => navTo({location: "Gallery"})}
+            accessibilityLabel = "Go To Your Gallery"
+            activeOpacity = {0.5}
+          >
+            {`Go To\n\nYour\n\nGallery`}
+          </NicerButton>
+        </ImageBackground>
       </View>
       <View style = {homeStyles.bottomPage}>
         <Text style = {defaultStyles.lightText}>
@@ -106,6 +130,10 @@ const HomePage = ({ navigation }) => { // added navigation function parameter
 const Gallery = ({navigation}) => {
   const collections = ["Collection A", "Collection B", "Collection C"];
   const [activeCollection, setActiveCollection] = useState(0);
+
+  const navTo = (props) => {
+    navigation.navigate(props.location);
+  }
 
   const initialData = collections.map((collectionName, collectionIndex) => {
     const items = [];
@@ -166,16 +194,20 @@ const Gallery = ({navigation}) => {
     <View style={galleryStyles.itemContainer}>
       <Text style={galleryStyles.itemTitle}>{item.title}</Text>
       <View style={galleryStyles.itemButtonRow}>
-        <TouchableOpacity
+        <NicerButton
           style={galleryStyles.openButton}
-          onPress={() => openItem(item)}>
-          <Text style={{color:'#fff'}}>Open</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
+          onPress={() => openItem(item)}
+          accessibilityLabel={`Open ${item.title}`}
+        >
+          Open
+        </NicerButton>
+        <NicerButton
           style={galleryStyles.removeButton}
-          onPress={() => removeItem(item.id)}>
-          <Text style={{color:'#fff'}}>Remove</Text>
-        </TouchableOpacity>
+          onPress={() => removeItem(item.id)}
+          accessibilityLabel={`Remove ${item.title}`}
+        >
+          Remove
+        </NicerButton>
       </View>
     </View>
   );
@@ -185,49 +217,44 @@ const Gallery = ({navigation}) => {
       <View style={galleryStyles.topPage}>
         <View style={galleryStyles.collectionWrapper}>
           <View style={galleryStyles.collectionRow}>
-            <TouchableOpacity
+            <NicerButton
               onPress={() => setActiveCollection(0)}
               style={[
                 galleryStyles.collectionButton,
                 activeCollection === 0 && galleryStyles.collectionButtonActive,
-              ]}>
-              <Text style={[
-                galleryStyles.collectionButtonText,
-                activeCollection === 0 && galleryStyles.collectionButtonTextActive,
-              ]}>
-                Collection One
-              </Text>
-              </TouchableOpacity>
-            <TouchableOpacity
+              ]}
+            >
+              <Text style={galleryStyles.collectionButtonText}>Collection One</Text>
+            </NicerButton>
+            <NicerButton
               onPress={() => setActiveCollection(1)}
               style={[
                 galleryStyles.collectionButton,
                 activeCollection === 1 && galleryStyles.collectionButtonActive,
-              ]}>
-              <Text style={[
-                galleryStyles.collectionButtonText,
-                activeCollection === 1 && galleryStyles.collectionButtonTextActive,
-              ]}>
-                Collection Two
-              </Text>
-              </TouchableOpacity>
-            <TouchableOpacity
+              ]}
+            >
+              <Text style={galleryStyles.collectionButtonText}>Collection Two</Text>
+            </NicerButton>
+            <NicerButton
               onPress={() => setActiveCollection(2)}
               style={[
                 galleryStyles.collectionButton,
                 activeCollection === 2 && galleryStyles.collectionButtonActive,
-              ]}>
-              <Text style={[
-                galleryStyles.collectionButtonText,
-                activeCollection === 2 && galleryStyles.collectionButtonTextActive,
-              ]}>
-                Collection Three
-              </Text>
-              </TouchableOpacity>
+              ]}
+            >
+              <Text style={galleryStyles.collectionButtonText}>Collection Three</Text>
+            </NicerButton>
           </View>
         </View>
       </View>
-      <View style={galleryStyles.bottomPage}>
+      <ImageBackground
+          source={[
+            require('./images/galleryBackground1.jpg'),
+            require('./images/galleryBackground2.jpg'),
+            require('./images/galleryBackground3.jpg'),
+          ][activeCollection]}
+          style={galleryStyles.bottomPage}
+      >
         <FlatList
           data={pieces}
           keyExtractor={(item) => item.id}
@@ -235,11 +262,23 @@ const Gallery = ({navigation}) => {
           contentContainerStyle={galleryStyles.listContent}
           renderItem={renderItem}
           ListEmptyComponent={
-            <Text style={galleryStyles.emptyText}>
-              No pieces in this collection.
-            </Text>}
+            <View style={galleryStyles.emptyContainer}>
+              <Text style={galleryStyles.emptyText}>
+                {`\nNothing here yet. Start creating some drawings!\n\n\n`}
+              <NicerButton
+                style={[galleryStyles.emptyButton, {backgroundColor: "#d1d1d1ff"}]}
+                textStyle={[galleryStyles.emptyText]}
+                onPress={() => navTo({location: "Sketch Pad"})}
+                accessibilityLabel="Click for a Blank Sketchpad!"
+                activeOpacity={0.8}
+              >
+                {`Ready to Create?\n\nGo to Sketch Pad!`}
+              </NicerButton>
+                {`\n\n`}
+              </Text>
+            </View>}
         />
-      </View>
+      </ImageBackground>
     </View>
   );
 };
@@ -248,8 +287,8 @@ const SavedDrawings = ({navigation, route}) => {
   
   const item = route?.params?.item;
 
-  const openInEditor = () => {
-    navigation.navigate('Sketch Pad', {itemId: item.id});
+  const navTo = (props) => {
+    navigation.navigate(props.location, {itemId: item.id});
   };
 
   return (
@@ -259,16 +298,14 @@ const SavedDrawings = ({navigation, route}) => {
           <Button
             color="#2d2d2dff"
             title="Open in Editor"
-            onPress={openInEditor}
+            onPress={() => navTo({location: "Sketch Pad"})}
           />
         </View>
         <View style={savedDrawingsStyles.topPageR}>
           <Button
             color="#2d2d2dff"
             title="Back to Gallery"
-            onPress={() => {
-              navigation.navigate("GalleryHome");
-            }}
+            onPress={() => navTo({location: "GalleryHome"})}
           />
         </View>
       </View>
@@ -363,7 +400,9 @@ const GalleryStack = () => {
   return (
     <Stack.Navigator initialRouteName="GalleryHome">
       <Stack.Screen name = "GalleryHome" component = {Gallery} options = 
-        {{title: 'Gallery', headerStyle: {
+        {{
+            title: "",
+            headerStyle: {
             backgroundColor: '#232527ff',
           },
             headerTintColor: '#FFFFFF',
@@ -372,7 +411,9 @@ const GalleryStack = () => {
           },
         }}/>
       <Stack.Screen name = "Saved Drawings" component = {SavedDrawings} options = 
-        {{headerStyle: {
+        {{
+            title: "Saved Drawing",
+            headerStyle: {
             backgroundColor: '#232527ff',
           },
             headerTintColor: '#FFFFFF',

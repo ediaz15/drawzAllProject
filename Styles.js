@@ -4,7 +4,7 @@ import { StyleSheet, Platform } from "react-native";
 export const defaultStyles = StyleSheet.create({
 	pageHeader: {
 	height: 100,
-	fontSize: 24,
+	fontSize: 30,
 	fontWeight: "bold",
 	justifyContent: "center",
 	alignItems: "center",
@@ -68,32 +68,56 @@ export const homeStyles = StyleSheet.create({
 	flex: 1,
   },
   topPage: {
-	flex: 1,
+	flex: .5,
 	alignItems: "center",
 	justifyContent: "center",
 	backgroundColor: "#282c2e",
   },
-  midPage: {
+  topMidPage: {
+	flex: .2,
+	alignItems: "center",
+	justifyContent: "center",
+	backgroundColor: "#34383aff",
+  },
+  midPageWrapper: {
+	flex: 2.5,
+	flexDirection: "row",
+  },
+  midPageL: {
 	flex: 3,
 	alignItems: "center",
 	justifyContent: "center",
-	...Platform.select({
-	  ios: {
-		backgroundColor: "#caedffff",
-		fontFamily: "Times New Roman",
-	  },
-	  android: {
-		backgroundColor: "#d1ffdfff",
-		fontFamily: "Baskerville",
-	  },
-	}),
+	backgroundColor: "#c0c9cdff",
+  },
+  midPageR: {
+	flex: 3,
+	alignItems: "center",
+	justifyContent: "center",
+	backgroundColor: "#a7afb3ff",
   },
   bottomPage: {
-	flex: .5,
+	flex: .2,
 	alignItems: "center",
 	justifyContent: "flex-end",
 	backgroundColor: "#282c2e",
-  }
+  },
+  homeButton: {
+	borderBottomWidth: 5,
+	borderLeftWidth: 5,
+	borderColor: "#000000ff",
+	padding: 5,
+	marginHorizontal: 20,
+	borderRadius: 10,
+	height: 300,
+	width: 150,
+	justifyContent: "center",
+  },
+  homeButtonText: {
+	fontSize: 24,
+	textAlign: "center",
+	justifyContent: "center",
+	fontWeight: "bold",
+  },
 });
 
 // Gallery Styles
@@ -124,14 +148,8 @@ export const galleryStyles = StyleSheet.create({
   	bottomPage: {
 		flex: 4,
 		width: "100%",
-		...Platform.select({
-			ios: {
-				backgroundColor: "#bae8ffff",
-			},
-			android: {
-				backgroundColor: "#b9fccdff",
-			},
-		}),
+		resizeMode: "cover",
+		repeat: true,
   	},
   	collectionWrapper: {
 		width: '100%',
@@ -147,26 +165,26 @@ export const galleryStyles = StyleSheet.create({
 		paddingHorizontal: 14,
 		borderRadius: 20,
 		borderWidth: 1,
+		borderLeftWidth: 3,
+		borderBottomWidth: 3,
 		borderColor: '#cccccc',
-		backgroundColor: 'transparent',
+		backgroundColor: "#424242ff",
 	},
 	collectionButtonActive: {
 		...Platform.select({
 		ios: {
-			backgroundColor: "#449cc7ff",
+			backgroundColor: "#518199ff",
 			borderColor: "#217abaff",
 		},
 		android: {
-			backgroundColor: "#49d272ff",
+			backgroundColor: "#2b994cff",
 			borderColor: "#2cae4bff",
 		},
 		}),
 	},
 	collectionButtonText: {
-		color: '#000',
-	},
-	collectionButtonTextActive: {
-		color: '#fff',
+		color: '#ffffffff',
+		fontWeight: 'bold',
 	},
 	listContent: {
 		padding: 12,
@@ -176,19 +194,22 @@ export const galleryStyles = StyleSheet.create({
 		flexWrap: 'wrap',
 		justifyContent: 'space-between',
 	},
-
 	itemContainer: {
 		flex: 1,
 		margin: 6,
 		height: 150,
-		backgroundColor: '#ffffffff',
+		backgroundColor: '#abababff',
 		borderRadius: 8,
+		borderWidth: 2,
+		borderColor: '#676767ff',
+		marginBlock: 12,
 		justifyContent: 'center',
 		alignItems: 'center',
 		padding: 8,
 	},
 	itemTitle: {
-		color: '#000',
+		color: '#000000ff',
+		fontWeight: 'bold',
 	},
 	itemButtonRow: {
 		flexDirection: 'row',
@@ -206,6 +227,8 @@ export const galleryStyles = StyleSheet.create({
 		paddingVertical: 6,
 		paddingHorizontal: 12,
 		borderRadius: 6,
+		borderWidth: 1,
+		borderColor: '#2b994cff',
 		marginRight: 8,
 	},
 	removeButton: {
@@ -213,10 +236,32 @@ export const galleryStyles = StyleSheet.create({
 		paddingVertical: 6,
 		paddingHorizontal: 12,
 		borderRadius: 6,
+		borderWidth: 1,
+		borderColor: '#c62828ff',
+	},
+	emptyContainer: {
+		flex: 1,
+		justifyContent: 'center',
+		alignItems: 'center',
+	},
+	emptyButton: {
+		borderBottomWidth: 5,
+		borderLeftWidth: 5,
+		borderColor: "#000000ff",
+		padding: 5,
+		marginLeft: 6,
+		marginHorizontal: 20,
+		borderRadius: 10,
+		height: 200,
+		width: 200,
+		justifyContent: "center",
 	},
 	emptyText: {
 		textAlign: 'center',
-		marginTop: 20,
+		fontSize: 24,
+		fontWeight: 'bold',
+		color: '#fcfcfcff',
+		backgroundColor: '#a4a4a4aa',
 	},
 });
 
