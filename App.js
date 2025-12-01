@@ -1,137 +1,26 @@
-// import React, Component, useState module as Component from base React
+// General Imports
 import 'react-native-gesture-handler';
 import { runOnJS } from 'react-native-reanimated';
-
-import React, { Component, useState, useRef, useEffect} from 'react';
-// import Text as Text from React Native
-import { Text, View, Platform, StyleSheet, Button, TouchableHighlight, ActivityIndicator} from 'react-native';
+import React, { Component, useState, useRef, useEffect } from 'react';
+import { Text, View, Button, TouchableHighlight,
+  ActivityIndicator, ImageBackground, Image, ScrollView, FlatList, TouchableOpacity, Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 // Navigation imports
 import { NavigationContainer } from '@react-navigation/native';
-import { Pressable } from 'react-native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { Pressable } from 'react-native';
+// Drawing Imports
 import ColorPicker from 'react-native-wheel-color-picker';
 import Slider from "@react-native-community/slider";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { Canvas, Path, Skia } from "@shopify/react-native-skia";
+// Style imports
+import { defaultStyles, toolStyles, galleryStyles, savedDrawingsStyles, homeStyles } from './Styles';
 
-
+// Navigation setup
 const Drawer = createDrawerNavigator();
-
-// Default Stylesheet (just to separate the defaults from special cases)
-const defaultStyles = StyleSheet.create({
-  homepage: {
-    ...Platform.select({
-      ios: {
-        backgroundColor: "#daf2feff",
-        fontFamily: "Times New Roman",
-      },
-      android: {
-        backgroundColor: "#eefff3ff",
-        fontFamily: "Baskerville",
-      },
-    }),
-    flex: 1,
-  },
-  sketchPad: {
-    ...Platform.select({
-      ios: {
-        backgroundColor: "#daf2feff",
-        fontFamily: "Times New Roman",
-      },
-      android: {
-        backgroundColor: "#eefff3ff",
-        fontFamily: "Baskerville",
-      },
-    }),
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "flex-start",
-  },
-  profile: {
-    ...Platform.select({
-      ios: {
-        backgroundColor: "#c1eaffff",
-        fontFamily: "Times New Roman",
-      },
-      android: {
-        backgroundColor: "#c2ffb1ff",
-        fontFamily: "Baskerville",
-      },
-    }),
-  },
-  topPage: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "flex-start",
-    backgroundColor: "#282c2e",
-  },
-  midPage: {
-    flex: 3,
-    alignItems: "center",
-    justifyContent: "center",
-    ...Platform.select({
-      ios: {
-        backgroundColor: "#caedffff",
-        fontFamily: "Times New Roman",
-      },
-      android: {
-        backgroundColor: "#d1ffdfff",
-        fontFamily: "Baskerville",
-      },
-    }),
-  },
-  bottomPage: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "flex-end",
-    backgroundColor: "#282c2e",
-  },
-  header: {
-    fontWeight: "bold",
-    justifyContent: "flex-start",
-    margin: 25,
-  },
-  pageHeader: {
-    height: 100,
-    fontSize: 24,
-    ...Platform.select({
-      ios: {
-        color: "#21b5ffff",
-      },
-      android: {
-        color: "#41ff7aff",
-      },
-    }),
-  },
-  subHeader: {
-    height: 50,
-    width: 50,
-    fontSize: 18,
-    ...Platform.select({
-      ios: {
-        color: "#21b5ffff",
-      },
-      android: {
-        color: "#41ff7aff",
-      },
-    }),
-  },
-  lightText: {
-    fontSize: 12,
-    ...Platform.select({
-      ios: {
-        color: "#caedffff",
-      },
-      android: {
-        color: "#d1ffdfff",
-      },
-    }),
-  },
-  darkText: {
-    fontSize: 12,
-    color: "#000000ff",
-  }
-});
+const Stack = createNativeStackNavigator();
 
 // Default Heading
 const Header = (props) => {
@@ -164,57 +53,61 @@ const SubHeader = (props) => {
   );
 }
 
-// Default Navigation button
-const NavTo = (props) => {
+// More stylish button component
+const NicerButton = (props) => {
   return (
-    <Button
-      color = {props.color}
-      title = {props.title}
-      onPress = {props.onPress}
-    />
+    <TouchableOpacity
+      onPress={props.onPress}
+      style={props.style}
+      accessibilityLabel={props.accessibilityLabel}
+      activeOpacity={props.activeOpacity}
+    >
+      <Text style={[props.textStyle]}>{props.children}</Text>
+    </TouchableOpacity>
   );
-}
-
-// Default Text component
-const DefaultText = (props) => {
-  return (
-    <Text style = {defaultStyles.darkText}>
-      {props.content}
-    </Text>
-  );
-}
+};
 
 const HomePage = ({ navigation }) => { // added navigation function parameter
 
-  const direct = () => navigation.navigate("Sketch Pad"); // fixed typo, removed props. and set to const
-  const profileDirect = () => navigation.navigate("Profile");
+  const navTo = (props) => navigation.navigate(props.location);
 
   return (
-    <View style = {defaultStyles.homepage}>
-      <View style = {defaultStyles.topPage}>
+    <View style = {homeStyles.homepage}>
+      <View style = {homeStyles.topPage}>
         <PageHeader>
           Home
         </PageHeader>
         <SubHeader>
-          Thanks for choosing DrawzAll!
+          {`\nThanks for choosing DrawzAll!`}
         </SubHeader>
       </View>
-      <View style = {defaultStyles.midPage}>
-        <Text style = {defaultStyles.lightText}>
-          "Tap one of the buttons below to get started!"
-        </Text> 
-        <NavTo
-          color = "#282c2e"
-          title = "Click for a Blank Sketchpad!"
-          onPress = {direct}
-        />
+      <View style = {homeStyles.topMidPage}>
       </View>
-      <View style = {defaultStyles.bottomPage}>
-        <NavTo
-          color = "#282c2e"
-          title = "Go to Profile Page"
-          onPress = {profileDirect}
-        />
+      <View style = {homeStyles.midPageWrapper}>
+        <ImageBackground source={require('./images/homepageL.jpg')} style = {homeStyles.midPageL}>
+          <NicerButton
+            style={[homeStyles.homeButton, {backgroundColor: "#6eeeffff"}]}
+            textStyle={[homeStyles.homeButtonText, {color: "#060606ff"}]}
+            onPress={() => navTo({location: "Sketch Pad"})}
+            accessibilityLabel="Click for a Blank Sketchpad!"
+            activeOpacity={0.5}
+          >
+            {`Click for a\n\nBlank\n\nSketchpad!`}
+          </NicerButton>
+        </ImageBackground>
+        <ImageBackground source={require('./images/homepageR.jpg')} style = {homeStyles.midPageR}>
+          <NicerButton
+            style={[homeStyles.homeButton, {backgroundColor: "#ff3700ff"}]}
+            textStyle={[homeStyles.homeButtonText, {color: "#060606ff"}]}
+            onPress = {() => navTo({location: "Gallery"})}
+            accessibilityLabel = "Go To Your Gallery"
+            activeOpacity = {0.5}
+          >
+            {`Go To\n\nYour\n\nGallery`}
+          </NicerButton>
+        </ImageBackground>
+      </View>
+      <View style = {homeStyles.bottomPage}>
         <Text style = {defaultStyles.lightText}>
           Created by the DrawzAll Team
         </Text>
@@ -223,53 +116,215 @@ const HomePage = ({ navigation }) => { // added navigation function parameter
   );
 }
 
-const Profile = ({navigation}) => {
-  const toSaved = () => navigation.navigate("Saved Drawings");
+/*
+  Gallery Page, restructured the idea of the Profile. 3 collections, which currently
+  have 13 placeholder pieces in each that can be opened or removed (should be able to scroll through
+  bc of FlatList properties). Stored in asynchstorage.
+  Uses a stack navigator to open saved drawings, thought it made more sense to disconnect
+  Saved Drawings from main drawer nav, since functionality comes from Gallery anyways.
+
+  TO DO:
+  - replace placeholder pieces with saved drawings from Sketch Pad.
+  - ensure drawings save properly in asynchstorage, and load properly in Saved Drawings / Gallery.
+    - ensure drawings are sent to Gallery from Sketch Pad. Even if it just displays some metadata
+      and opens to the full image w/ "Open In Editor".
+*/
+const Gallery = ({navigation}) => {
+  const collections = ["Collection A", "Collection B", "Collection C"];
+  const [activeCollection, setActiveCollection] = useState(0);
+
+  const navTo = (props) => {
+    navigation.navigate(props.location);
+  }
+
+  const initialData = collections.map((collectionName, collectionIndex) => {
+    const items = [];
+    for (let i = 0; i < 13; i++) {
+      items.push({id:`${collectionIndex}-${i}`, title:`Item ${i + 1}`});
+    }
+    return items;
+  });
+
+  const [collectionsData, setCollectionsData] = useState(initialData);
+
+  var pieces = collectionsData[activeCollection];
+
+  const STORAGE_KEY = '@DrawzAll:collections';
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const key = await AsyncStorage.getItem(STORAGE_KEY);
+        if (key) {
+          const savedPieces = JSON.parse(key);
+          setCollectionsData(savedPieces);
+        }
+      }
+      catch (err) {
+        console.warn('Failed to load collections from storage', err);
+      }
+    };
+    load();
+  }, []);
+
+  useEffect(() => {
+    const save = async () => {
+      try {
+        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(collectionsData));
+      }
+      catch (err) {
+        console.warn('Failed to save collections to storage', err);
+      }
+    };
+    save();
+  }, [collectionsData]);
+
+  const openItem = (item) => {
+    navigation.navigate("Saved Drawings", {item});
+  };
+
+  const removeItem = (pieceId) => {
+    setCollectionsData((collItems) =>
+      collItems.map((coll, changed) => {
+        if (changed !== activeCollection) return coll;
+        return coll.filter((piece) => piece.id !== pieceId);
+      })
+    );
+  };
+
+  const renderItem = ({item}) => (
+    <View style={galleryStyles.itemContainer}>
+      <Text style={galleryStyles.itemTitle}>{item.title}</Text>
+      <View style={galleryStyles.itemButtonRow}>
+        <NicerButton
+          style={galleryStyles.openButton}
+          onPress={() => openItem(item)}
+          accessibilityLabel={`Open ${item.title}`}
+        >
+          Open
+        </NicerButton>
+        <NicerButton
+          style={galleryStyles.removeButton}
+          onPress={() => removeItem(item.id)}
+          accessibilityLabel={`Remove ${item.title}`}
+        >
+          Remove
+        </NicerButton>
+      </View>
+    </View>
+  );
 
   return (
-    <View style = {defaultStyles.homepage}>
-      <View style = {defaultStyles.topPage}>
-        <PageHeader>
-          username:
-         </PageHeader>
-         <PageHeader>
-          <NavTo
-            color = "#282c2e"
-            title = "saved sketches:"
-            onPress = {toSaved}
-          />
-         </PageHeader>
+    <View style={{flex: 1}}>
+      <View style={galleryStyles.topPage}>
+        <View style={galleryStyles.collectionWrapper}>
+          <View style={galleryStyles.collectionRow}>
+            <NicerButton
+              onPress={() => setActiveCollection(0)}
+              style={[
+                galleryStyles.collectionButton,
+                activeCollection === 0 && galleryStyles.collectionButtonActive,
+              ]}
+            >
+              <Text style={galleryStyles.collectionButtonText}>Collection One</Text>
+            </NicerButton>
+            <NicerButton
+              onPress={() => setActiveCollection(1)}
+              style={[
+                galleryStyles.collectionButton,
+                activeCollection === 1 && galleryStyles.collectionButtonActive,
+              ]}
+            >
+              <Text style={galleryStyles.collectionButtonText}>Collection Two</Text>
+            </NicerButton>
+            <NicerButton
+              onPress={() => setActiveCollection(2)}
+              style={[
+                galleryStyles.collectionButton,
+                activeCollection === 2 && galleryStyles.collectionButtonActive,
+              ]}
+            >
+              <Text style={galleryStyles.collectionButtonText}>Collection Three</Text>
+            </NicerButton>
+          </View>
+        </View>
       </View>
-      <View style = {defaultStyles.midPage}>
-        <ActivityIndicator size="large" color="#000000ff" />
-        <DefaultText content = "Fetching profile details..."/>
-      </View>
-      <View style = {defaultStyles.bottomPage}>
-        <Text style = {defaultStyles.lightText}>
-          Profile page under construction.
-        </Text>
-      </View>
+      <ImageBackground
+          source={[
+            require('./images/galleryBackground1.jpg'),
+            require('./images/galleryBackground2.jpg'),
+            require('./images/galleryBackground3.jpg'),
+          ][activeCollection]}
+          style={galleryStyles.bottomPage}
+      >
+        <FlatList
+          data={pieces}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          contentContainerStyle={galleryStyles.listContent}
+          renderItem={renderItem}
+          ListEmptyComponent={
+            <View style={galleryStyles.emptyContainer}>
+              <Text style={galleryStyles.emptyText}>
+                {`\nNothing here yet. Start creating some drawings!\n\n\n`}
+              <NicerButton
+                style={[galleryStyles.emptyButton, {backgroundColor: "#d1d1d1ff"}]}
+                textStyle={[galleryStyles.emptyText]}
+                onPress={() => navTo({location: "Sketch Pad"})}
+                accessibilityLabel="Click for a Blank Sketchpad!"
+                activeOpacity={0.8}
+              >
+                {`Ready to Create?\n\nGo to Sketch Pad!`}
+              </NicerButton>
+                {`\n\n`}
+              </Text>
+            </View>}
+        />
+      </ImageBackground>
     </View>
   );
 };
 
-const SavedDrawings = ({navigation}) => {
-  const direct = () => navigation.navigate("Sketch Pad");
+const SavedDrawings = ({navigation, route}) => {
+  
+  const item = route?.params?.item;
+
+  const navTo = (props) => {
+    navigation.navigate(props.location, {itemId: item.id});
+  };
+
   return (
-    <View style = {defaultStyles.homepage}>
-      <View style = {defaultStyles.topPage}>
-        <PageHeader>
-          No saved drawings yet!
-        </PageHeader>
+    <View style={savedDrawingsStyles.savedDrawings}>
+      <View style={savedDrawingsStyles.topRow}>
+        <View style={savedDrawingsStyles.topPageL}>
+          <Button
+            color="#2d2d2dff"
+            title="Open in Editor"
+            onPress={() => navTo({location: "Sketch Pad"})}
+          />
+        </View>
+        <View style={savedDrawingsStyles.topPageR}>
+          <Button
+            color="#2d2d2dff"
+            title="Back to Gallery"
+            onPress={() => navTo({location: "GalleryHome"})}
+          />
+        </View>
       </View>
-      <View style = {defaultStyles.midPage}>
-      </View>
-      <View style = {defaultStyles.bottomPage}>
-        <NavTo
-          color = "#282c2e"
-          title = "Click for a Blank Sketchpad!"
-          onPress = {direct}
-        />
+      <View style={savedDrawingsStyles.bottomPage}>
+        {item ? (
+          <View style={savedDrawingsStyles.previewContainer}>
+            <View style={savedDrawingsStyles.previewBox}>
+              <Text style={defaultStyles.darkText}>
+                {`Preview: Item ${item.id}`}
+              </Text>
+            </View>
+          </View>
+        ) : (
+          <Text style={defaultStyles.lightText}>
+            No saved drawing selected. Open one from the Gallery.
+          </Text>
+        )}
       </View>
     </View>
   );
@@ -291,8 +346,8 @@ const DrawzAll = () => {
             fontWeight: '300',
           },
         }}/>
-        <Drawer.Screen name = "Profile" component = {Profile} options = 
-        {{title: "Profile",
+        <Drawer.Screen name = "Gallery" component = {GalleryStack} options = 
+        {{title: "Gallery",
           headerStyle: {
             backgroundColor: '#232527ff',
           },
@@ -302,19 +357,6 @@ const DrawzAll = () => {
           },
         }}/>
         <Drawer.Screen name = "Sketch Pad" component = {BlankSketchPad} options = 
-          {({ navigation, route }) => ({
-            title: "Blank Sketch",
-            headerStyle: {backgroundColor: "#232527ff"},
-            headerTintColor: "#FFFFFF",
-            headerTitleStyle: {fontWeight: "300"},
-            headerRight: () => (
-              <View style={{ flexDirection: "row", gap: 10, marginRight: 10}}>
-                <Button title="Undo" onPress={() => route.params?.undo?.()} color="#ffcc00" />
-                <Button title="Redo" onPress={() => route.params?.redo?.()} color="#66ccff" />
-              </View>
-            )
-          })}/>
-        <Drawer.Screen name = "Saved Drawings" component = {SavedDrawings} options = 
         {{  headerStyle: {
             backgroundColor: '#232527ff',
           },
@@ -323,12 +365,80 @@ const DrawzAll = () => {
             fontWeight: '300',
           },
         }}/>
+        {/* Saved Drawings is now part of the Gallery native stack */}
       </Drawer.Navigator>
     </NavigationContainer>
   );
 }
 
-const ToolBar = ({ onSelectTool, onSelectColor, currentTool, onSelectBrushSize, onSelectEraserSize, brushSize: parentBrushSize, eraserSize: parentEraserSize }) => { // added fields for size sliders
+// Stack navigator that wraps Gallery and Saved Drawings only
+const GalleryStack = () => {
+  return (
+    <Stack.Navigator initialRouteName="GalleryHome">
+      <Stack.Screen name = "GalleryHome" component = {Gallery} options = 
+        {{
+            title: "",
+            headerStyle: {
+            backgroundColor: '#232527ff',
+          },
+            headerTintColor: '#FFFFFF',
+            headerTitleStyle: {
+            fontWeight: '300',
+          },
+        }}/>
+        
+        
+      <Stack.Screen name = "Saved Drawings" component = {SavedDrawings} options = 
+        {{
+            title: "Saved Drawing",
+            headerStyle: {
+            backgroundColor: '#232527ff',
+          },
+            headerTintColor: '#FFFFFF',
+            headerTitleStyle: {
+            fontWeight: '300',
+          },
+        }}/>
+    </Stack.Navigator>
+  );
+}
+
+/*
+
+    Redundant w/ FreehandDrawing component
+
+        <Drawer.Screen name = "Sketch Pad" component = {BlankSketchPad} options = 
+        {{title: "Blank Sketch",
+          headerStyle: {
+            backgroundColor: '#232527ff',
+          },
+            headerTintColor: '#FFFFFF',
+            headerTitleStyle: {
+            fontWeight: '300',
+          },
+        }}/>
+
+*/
+
+
+
+/* 
+ * TODO for ToolBar:
+  * - Pen: add size slider and save the size, create a fade effect outside of the radius,
+  *        should consist for about the last 10% of the radius, fade from current color to transparent
+  * - Eraser: same as pen, use pen radius, but set to transparent color and no fade
+  * - Shape: drag shape from one corner to another
+  *          for unfilled shapes, line thickness corresponds to pen radius, color is current color
+  *          for filled shapes, color is current color, no need to impliment radius
+  * - Color: Should be all done
+  * 
+  * - Save the state from the last stroke to use for redo/undo (probably can't code until we get skia working)
+  * - Get skia working or another drawing library (dreading this with all our issues thus far)
+  * 
+ */
+
+
+const ToolBar = ({ onSelectTool, onSelectColor, currentTool }) => {
 
   // for shape select
   const [showShapeOptions, setShowShapeOptions] = useState(false);
@@ -874,86 +984,12 @@ const BlankSketchPad = ({ navigation, route}) => {
   );
 };
 
-// Basic Styling for Toolbar
-const toolStyles = StyleSheet.create({
-  container: { // Toolbar at bottom, lists buttons horizontally, colors defined in ToolBar
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-    padding: 10,
-    borderTopWidth: 1,
-    borderColor: "#232527ff",
-    backgroundColor: "#282c2e",
-  },
-  shapeContainer: { // General styling for shape button and dropdown
-    position: 'relative',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  shapeDropdown: { // List items horizontally and above the shape button, shadows for visual appeal
-    position: 'absolute',
-    bottom: 45,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#ffffffff',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    width: 270,
-    paddingVertical: 4,
-    paddingHorizontal: 6,
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
-    zIndex: 10, 
-  },
-  shapeOption: { // margin between the shape options
-    marginHorizontal: 20,
-  },
-  shapeText: { // shape size and color
-    fontSize: 30,
-    color: '#282c2e',
-    textAlign: 'center',
-  },
-  colorPicker: { // Styling for color wheel
-    position: 'absolute',
-    bottom: 100,
-    left: 0, // stretches across screen
-    right: 0,
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 10, // rounds the corners
-    borderTopRightRadius: 10,
-    padding: 10,
-    zIndex: 100, // makes it appear on the top
-    elevation: 10,
-  },
-  colorConfirms: {
-    flexDirection: "row", 
-    justifyContent: "space-around", 
-    marginTop: 10 
-  },
-  sliderOption: {
-    marginTop: 12,
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 8
-  },
-  sizeSliderContainer: {
-    position: 'absolute',
-    bottom: 70,
-    left: 0,
-    right: 0,
-    backgroundColor: "#282c2e",
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-    padding: 15,
-    alignItems: "center",
-    zIndex: 100,
-    elevation: 10,
-  }
-});
+//Props to use when drawing..
+/*
+strokeWidth,
+color
+
+*/
 
 // export default reference - BasicApp
 export default DrawzAll;
