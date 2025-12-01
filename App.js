@@ -357,14 +357,18 @@ const DrawzAll = () => {
           },
         }}/>
         <Drawer.Screen name = "Sketch Pad" component = {BlankSketchPad} options = 
-        {{  headerStyle: {
-            backgroundColor: '#232527ff',
-          },
-            headerTintColor: '#FFFFFF',
-            headerTitleStyle: {
-            fontWeight: '300',
-          },
-        }}/>
+          {({ navigation, route }) => ({
+            title: "Blank Sketch",
+            headerStyle: {backgroundColor: "#232527ff"},
+            headerTintColor: "#FFFFFF",
+            headerTitleStyle: {fontWeight: "300"},
+            headerRight: () => (
+              <View style={{ flexDirection: "row", gap: 10, marginRight: 10}}>
+                <Button title="Undo" onPress={() => route.params?.undo?.()} color="#ffcc00" />
+                <Button title="Redo" onPress={() => route.params?.redo?.()} color="#66ccff" />
+              </View>
+            )
+          })}/>
         {/* Saved Drawings is now part of the Gallery native stack */}
       </Drawer.Navigator>
     </NavigationContainer>
@@ -386,8 +390,6 @@ const GalleryStack = () => {
             fontWeight: '300',
           },
         }}/>
-        
-        
       <Stack.Screen name = "Saved Drawings" component = {SavedDrawings} options = 
         {{
             title: "Saved Drawing",
@@ -403,42 +405,9 @@ const GalleryStack = () => {
   );
 }
 
-/*
-
-    Redundant w/ FreehandDrawing component
-
-        <Drawer.Screen name = "Sketch Pad" component = {BlankSketchPad} options = 
-        {{title: "Blank Sketch",
-          headerStyle: {
-            backgroundColor: '#232527ff',
-          },
-            headerTintColor: '#FFFFFF',
-            headerTitleStyle: {
-            fontWeight: '300',
-          },
-        }}/>
-
-*/
-
-
-
-/* 
- * TODO for ToolBar:
-  * - Pen: add size slider and save the size, create a fade effect outside of the radius,
-  *        should consist for about the last 10% of the radius, fade from current color to transparent
-  * - Eraser: same as pen, use pen radius, but set to transparent color and no fade
-  * - Shape: drag shape from one corner to another
-  *          for unfilled shapes, line thickness corresponds to pen radius, color is current color
-  *          for filled shapes, color is current color, no need to impliment radius
-  * - Color: Should be all done
-  * 
-  * - Save the state from the last stroke to use for redo/undo (probably can't code until we get skia working)
-  * - Get skia working or another drawing library (dreading this with all our issues thus far)
-  * 
- */
-
-
-const ToolBar = ({ onSelectTool, onSelectColor, currentTool }) => {
+const ToolBar = ({ onSelectTool, onSelectColor, currentTool,
+  onSelectBrushSize, onSelectEraserSize, brushSize: parentBrushSize, 
+  eraserSize: parentEraserSize }) => { // added fields for size sliders
 
   // for shape select
   const [showShapeOptions, setShowShapeOptions] = useState(false);
@@ -984,12 +953,4 @@ const BlankSketchPad = ({ navigation, route}) => {
   );
 };
 
-//Props to use when drawing..
-/*
-strokeWidth,
-color
-
-*/
-
-// export default reference - BasicApp
 export default DrawzAll;

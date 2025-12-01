@@ -329,9 +329,6 @@ export const toolStyles = StyleSheet.create({
     borderTopWidth: 1,
     borderColor: "#232527ff",
     backgroundColor: "#282c2e",
-    position: "absolute",
-    bottom: 0,
-    width: "100%",
   },
   shapeContainer: { // General styling for shape button and dropdown
     position: 'relative',
@@ -382,4 +379,23 @@ export const toolStyles = StyleSheet.create({
     justifyContent: "space-around", 
     marginTop: 10 
   },
+  sliderOption: {
+    marginTop: 12,
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 8
+  },
+  sizeSliderContainer: {
+    position: 'absolute',
+    bottom: 70,
+    left: 0,
+    right: 0,
+    backgroundColor: "#282c2e",
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    padding: 15,
+    alignItems: "center",
+    zIndex: 100,
+    elevation: 10,
+  }
 });
