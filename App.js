@@ -255,7 +255,6 @@ const Profile = ({navigation}) => {
 
 const SavedDrawings = ({navigation}) => {
   const direct = () => navigation.navigate("Sketch Pad");
-
   return (
     <View style = {defaultStyles.homepage}>
       <View style = {defaultStyles.topPage}>
@@ -324,29 +323,10 @@ const DrawzAll = () => {
             fontWeight: '300',
           },
         }}/>
-        
-        
       </Drawer.Navigator>
     </NavigationContainer>
-
   );
 }
-
-/* 
- * TODO for ToolBar:
-  * - Pen: add size slider and save the size, create a fade effect outside of the radius,
-  *        should consist for about the last 10% of the radius, fade from current color to transparent
-  * - Eraser: same as pen, use pen radius, but set to transparent color and no fade
-  * - Shape: drag shape from one corner to another
-  *          for unfilled shapes, line thickness corresponds to pen radius, color is current color
-  *          for filled shapes, color is current color, no need to impliment radius
-  * - Color: Should be all done
-  * 
-  * - Save the state from the last stroke to use for redo/undo (probably can't code until we get skia working)
-  * - Get skia working or another drawing library (dreading this with all our issues thus far)
-  * 
- */
-
 
 const ToolBar = ({ onSelectTool, onSelectColor, currentTool, onSelectBrushSize, onSelectEraserSize, brushSize: parentBrushSize, eraserSize: parentEraserSize }) => { // added fields for size sliders
 
@@ -610,6 +590,7 @@ const BlankSketchPad = ({ navigation, route}) => {
   const [eraserSize, setEraserSize] = useState(10);
 
   const shapeStartRef = useRef(null); // shape coordinates
+  const [previewShape, setPreviewShape] = useState(null); // for shape preview
 
   //onStartPath refers to the first touch portion of the pan gesture, so its the moment your finger touches the screen
   //We make a path and we track is x,y position
@@ -674,6 +655,47 @@ const BlankSketchPad = ({ navigation, route}) => {
     shapeStartRef.current = { x, y };
   };
 
+  // shape preview code, goes until click/tap released
+  const updateShapePreview = (x, y) => {
+    const start = shapeStartRef.current;
+    if (!start) return;
+    const { x: startx, y: starty } = start;
+    const endx = x, endy = y;
+
+    const shapePath = Skia.Path.Make();
+
+    const shape = selectedShape;
+    const isFilled = shape === '\u25cf' || shape === '\u25a0';
+    const isCircle = shape === '\u25cb' || shape === '\u25cf';
+
+    if (isCircle) {
+      const minX = Math.min(startx, endx);
+      const maxX = Math.max(startx, endx);
+      const minY = Math.min(starty, endy);
+      const maxY = Math.max(starty, endy);
+      shapePath.addOval({
+        x: minX,
+        y: minY,
+        width: maxX - minX,
+        height: maxY - minY,
+      });
+    } else {
+      shapePath.addRect({
+        x: Math.min(startx, endx),
+        y: Math.min(starty, endy),
+        width: Math.abs(endx - startx),
+        height: Math.abs(endy - starty),
+      });
+    }
+
+    setPreviewShape({
+      path: shapePath,
+      color: selectedColor,
+      tool: isFilled ? "shape-fill" : "shape",
+      strokeWidth: brushSize,
+    });
+  };
+
   const endShape = (x, y) => {
     const start = shapeStartRef.current;
     if (!start) return;
@@ -687,9 +709,19 @@ const BlankSketchPad = ({ navigation, route}) => {
     const isFilled = shape === '\u25cf' || shape === '\u25a0';
     const isCircle = shape === '\u25cb' || shape === '\u25cf';
 
-    if (isCircle) {
-      const radius = Math.sqrt((startx - endx) ** 2 + (starty - endy) ** 2);
-      shapePath.addCircle(startx, starty, radius);
+    if (isCircle) { // code for properly drawing circles/ellipses
+      // Calculate bounding box with start and end as opposite corners
+      const minX = Math.min(startx, endx);
+      const maxX = Math.max(startx, endx);
+      const minY = Math.min(starty, endy);
+      const maxY = Math.max(starty, endy);
+
+      shapePath.addOval({
+        x: minX,
+        y: minY,
+        width: maxX - minX,
+        height: maxY - minY,
+      });
     } else {
       shapePath.addRect({
         x: Math.min(startx, endx),
@@ -704,11 +736,14 @@ const BlankSketchPad = ({ navigation, route}) => {
       {
         path: shapePath,
         color: selectedColor,
-        tool: isFilled ? "shape-fill" : "shape"
+        tool: isFilled ? "shape-fill" : "shape",
+        strokeWidth: brushSize
       }
     ]);
 
     shapeStartRef.current = null;
+    // clear preview when shape released
+    setPreviewShape(null);
     setRedoStack([]);
   };
 
@@ -724,15 +759,18 @@ const BlankSketchPad = ({ navigation, route}) => {
     })
     .onUpdate((e) => {
       if (selectedTool === "pen" || selectedTool === "eraser") { // only for these, dont update shapes right away
-        runOnJS(updatePath)(e.x, e.y);
+          runOnJS(updatePath)(e.x, e.y);
       }
+        if (selectedTool === "shape" && selectedShape) { 
+          runOnJS(updateShapePreview)(e.x, e.y);
+        }
     })
     .onEnd((e) => {
       if (selectedTool === "pen" || selectedTool === "eraser") { // added condition for shape
         runOnJS(endPath)();
       } 
       if (selectedTool === "shape" && selectedShape) {
-        runOnJS(endShape)(e.x, e.y);
+          runOnJS(endShape)(e.x, e.y);
       }
     });
 
@@ -783,7 +821,7 @@ const BlankSketchPad = ({ navigation, route}) => {
                 />
               );
             }
-            // shapes
+            // shapes filled
             if (item.tool === "shape-fill") {
               return (
                 <Path
@@ -794,7 +832,33 @@ const BlankSketchPad = ({ navigation, route}) => {
                 />
               );
             }
+            // shapes outline, width = pen width
+            if (item.tool === "shape") {
+              return (
+                <Path
+                  key={index}
+                  path={item.path}
+                  color={item.color}
+                  style="stroke"
+                  strokeWidth={item.strokeWidth || brushSize}
+                  strokeJoin="round"
+                  strokeCap="round"
+                />
+              );
+            }
           })}
+          {/* shape preview below */}
+          {previewShape && (
+            <Path
+              key="preview"
+              path={previewShape.path}
+              color={previewShape.color}
+              style={previewShape.tool === "shape-fill" ? "fill" : "stroke"}
+              strokeWidth={previewShape.strokeWidth || brushSize}
+              strokeJoin="round"
+              strokeCap="round"
+            />
+          )}
         </Canvas>
       </GestureDetector>
       <ToolBar 
@@ -809,14 +873,6 @@ const BlankSketchPad = ({ navigation, route}) => {
     </View>
   );
 };
-
-//Props to use when drawing..
-/*
-strokeWidth,
-color
-
-*/
-
 
 // Basic Styling for Toolbar
 const toolStyles = StyleSheet.create({
