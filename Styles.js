@@ -294,15 +294,8 @@ export const savedDrawingsStyles = StyleSheet.create({
 		width: '100%',
 		alignItems: 'stretch',
 	},
-	bottomPageL: {
-		flex: 0.5,
-		backgroundColor: '#292929ff',
-		justifyContent: 'flex-end',
-		padding: 10,
-	},
-
-	bottomPageR: {
-		flex: 0.5,
+	bottomPage: {
+		flex: 1,
 		backgroundColor: '#292929ff',
 		justifyContent: 'flex-end',
 		padding: 10,

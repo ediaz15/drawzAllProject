@@ -332,18 +332,11 @@ const SavedDrawings = ({navigation, route}) => {
         )}
       </View>
       <View style={savedDrawingsStyles.bottomRow}>
-        <View style={savedDrawingsStyles.bottomPageL}>
+        <View style={savedDrawingsStyles.bottomPage}>
           <Button
             color="#2d2d2dff"
-            title="Open in Editor"
+            title={`Open in Editor📂`}
             onPress={() => navTo({location: "Sketch Pad"})}
-          />
-        </View>
-        <View style={savedDrawingsStyles.bottomPageR}>
-          <Button
-            color="#2d2d2dff"
-            title="Back to Gallery"
-            onPress={() => navTo({location: "GalleryHome"})}
           />
         </View>
       </View>
