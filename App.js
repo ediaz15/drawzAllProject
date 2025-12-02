@@ -811,12 +811,10 @@ const BlankSketchPad = ({ navigation, route}) => {
 
 //removed comments cuz textNode error kept happening -> seemed to be from comments in the code -> from the item.tool part of the BlankSketchPad component!
 //saveSketchAsPng related -> //test title -> plan to have it towhere we can change name by prompting user to do so!!
-//linnks abt text nodes: https://github.com/Shopify/react-native-skia/issues/2687
 //Props to use when drawing..
 /*
 strokeWidth,
 color
-
 */
 
 
