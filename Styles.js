@@ -337,7 +337,7 @@ export const toolStyles = StyleSheet.create({
   },
   shapeDropdown: { // List items horizontally and above the shape button, shadows for visual appeal
     position: 'absolute',
-    bottom: 45,
+    bottom: 60,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -357,17 +357,26 @@ export const toolStyles = StyleSheet.create({
   shapeOption: { // margin between the shape options
     marginHorizontal: 20,
   },
+  shapeButton: {
+	alignItems: 'center',
+	justifyContent: 'center',
+	padding: 10,
+	borderRadius: 8,
+  },
   shapeText: { // shape size and color
     fontSize: 30,
     color: '#282c2e',
-    textAlign: 'center',
+  },
+  toolBarText: {
+	 fontSize: 32,
+	 color: "#FFFFFF",
   },
   colorPicker: { // Styling for color wheel
     position: 'absolute',
     bottom: 100,
     left: 0, // stretches across screen
     right: 0,
-    backgroundColor: "#fff",
+    backgroundColor: "#e9e9e9ff",
     borderTopLeftRadius: 10, // rounds the corners
     borderTopRightRadius: 10,
     padding: 10,
@@ -397,5 +406,32 @@ export const toolStyles = StyleSheet.create({
     alignItems: "center",
     zIndex: 100,
     elevation: 10,
+  },
+  sliderDropdown: { 
+	position: 'absolute',
+	bottom: 70,
+	flexDirection: 'row',
+	justifyContent: 'space-between',
+	alignItems: 'center',
+	backgroundColor: '#ffffffff',
+	borderWidth: 1,
+	borderColor: '#ccc',
+	borderRadius: 10,
+	width: 270,
+	paddingVertical: 8,
+	paddingHorizontal: 12,
+	shadowColor: '#000',
+	shadowOpacity: 0.15,
+	shadowRadius: 4,
+	elevation: 3,
+	zIndex: 10,
+  },
+  sliderValueText: { // display text on rhs
+	fontSize: 16,
+	color: '#282c2e',
+	marginLeft: 4,
+	marginRight: 18,
+	minWidth: 36,
+	textAlign: 'right'
   }
 });

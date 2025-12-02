@@ -278,7 +278,8 @@ const Gallery = ({navigation}) => {
               </NicerButton>
                 {`\n\n`}
               </Text>
-            </View>}
+            </View>
+            }
         />
       </ImageBackground>
     </View>
@@ -403,16 +404,24 @@ const DrawzAll = () => {
             fontWeight: '300',
           },
         }}/>
+        {/* changed to touchableOpacity for unicode symbols*/}
         <Drawer.Screen name = "Sketch Pad" component = {BlankSketchPad} options = 
           {({ navigation, route }) => ({
             title: "Blank Sketch",
             headerStyle: {backgroundColor: "#232527ff"},
             headerTintColor: "#FFFFFF",
             headerTitleStyle: {fontWeight: "300"},
-            headerRight: () => (
-              <View style={{ flexDirection: "row", gap: 10, marginRight: 10}}>
-                <Button title="Undo" onPress={() => route.params?.undo?.()} color="#ffcc00" />
-                <Button title="Redo" onPress={() => route.params?.redo?.()} color="#66ccff" />
+            headerRight: () => ( 
+              <View style={{ flexDirection: "row", gap: 15, marginRight: 10}}> 
+                <TouchableOpacity onPress={() => route.params?.undo?.()}>
+                  <Text style={{ fontSize: 36, color: "#FFFFFF" }}>↺</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => route.params?.redo?.()}>
+                  <Text style={{ fontSize: 36, color: "#FFFFFF" }}>↻</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => route.params?.clearCanvas?.()}>
+                  <Text style={{ fontSize: 36, color: "#FFFFFF" }}>🗑</Text>
+                </TouchableOpacity>
               </View>
             )
           })}/>
@@ -562,12 +571,25 @@ const ToolBar = ({ onSelectTool, onSelectColor, currentTool,
     <View style={toolStyles.container}>
       
 
-      {/* Pen button: single tap selects tool, double-tap handled in handleBrushTap */}
-      <Button title="Pen" color="blue" onPress={handleBrushTap} />
+      {/* Pen button: single tap selects tool, double-tap handled in handleBrushTap 
+        * switched to touchableOpacity for using a symbol instead of a big ugly button
+      */}
+      <NicerButton 
+          style={toolStyles.shapeButton}
+          activeOpacity={0.7}
+          onPress={handleBrushTap}
+          textStyle = {toolStyles.toolBarText}>
+            {"✐"}
+      </NicerButton>
 
       {/* Eraser button: single tap selects tool, double-tap handled in handleEraserTap */}
-      <Button title="Eraser" color="red" onPress={handleEraserTap} />
-        
+      <NicerButton 
+          style={toolStyles.shapeButton}
+          activeOpacity={0.7}
+          onPress={handleEraserTap}
+          textStyle = {toolStyles.toolBarText}>
+            {"⌫"}
+      </NicerButton>  
       {/* old code for double tap below
             {
         (() => {
@@ -606,7 +628,13 @@ const ToolBar = ({ onSelectTool, onSelectColor, currentTool,
         */}
       
       <View style={toolStyles.shapeContainer}>
-        <Button title="Shape" color="green" onPress={handleShapePress} />
+        <NicerButton 
+          style={toolStyles.shapeButton}
+          activeOpacity={0.7}
+          onPress={handleShapePress}
+          textStyle = {toolStyles.toolBarText}>
+            {"❏"}
+        </NicerButton>
         {showShapeOptions && (
             <View style={toolStyles.shapeDropdown}>
               {['\u25cb', '\u25a1', '\u25cf', '\u25a0'].map((shape) => (
@@ -626,7 +654,12 @@ const ToolBar = ({ onSelectTool, onSelectColor, currentTool,
         * Color picker component and styling
         * Uses react-native-wheel-color-picker
         */}
-      <Button title="Color" color="orange" onPress={() => handleToolPress("color")} />
+      <NicerButton
+        style={toolStyles.shapeButton}
+        activeOpacity={0.7}
+        onPress={() => handleToolPress('color')}>
+        {"🎨"}
+      </NicerButton>
       {showColorPicker && (
         <View style={toolStyles.colorPicker}>
           <ColorPicker
@@ -656,41 +689,56 @@ const ToolBar = ({ onSelectTool, onSelectColor, currentTool,
       )}
       {/* brush size slider, uncommented from before */}
       {showBrushSizeSlider && ( 
-        <View style={toolStyles.sizeSliderContainer}>
-          <Text style={{ color: "white", marginBottom: 8 }}>{Math.round(brushSize)}px</Text>
-          <Slider
-            value={brushSize}
-            minimumValue={minSize}
-            maximumValue={maxSize}
-            step={1}
-            style={{ width: 200, height: 40 }}
-            onValueChange={(value) => {
-              setBrushSize(value);
-              if (onSelectBrushSize) onSelectBrushSize(value);
-            }}
-          />
-          <View style={toolStyles.colorConfirms}>
-            <Button title="Done" color="green" onPress={() => setShowBrushSizeSlider(false)} />
+        <View style={toolStyles.sliderDropdown}>
+          <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+            <Slider
+              value={brushSize}
+              minimumValue={minSize}
+              maximumValue={maxSize}
+              step={1}
+              style={{ flex: 1, height: 40 }}
+              onValueChange={(value) => {
+                setBrushSize(value);
+                if (onSelectBrushSize) onSelectBrushSize(value);
+              }}
+            />
+            <Text style={toolStyles.sliderValueText}>{Math.round(brushSize)}px</Text>
+          </View>
+          <View>
+            <NicerButton
+              style={toolStyles.shapeButton}
+              activeOpacity={0.7} 
+              textStyle = {toolStyles.shapeText}
+              onPress={() => setShowBrushSizeSlider(false)}>
+              {"✓"}
+            </NicerButton>
           </View>
         </View>
       )}
 
       {showEraserSizeSlider && (
-        <View style={toolStyles.sizeSliderContainer}>
-          <Text style={{ color: "white", marginBottom: 8 }}>{Math.round(eraserSize)}px</Text>
-          <Slider
-            value={eraserSize}
-            minimumValue={minSize}
-            maximumValue={maxSize}
-            step={1}
-            style={{ width: 200, height: 40 }}
-            onValueChange={(value) => {
-              setEraserSize(value);
-              if (onSelectEraserSize) onSelectEraserSize(value);
-            }}
-          />
-          <View style={toolStyles.colorConfirms}>
-            <Button title="Done" color="green" onPress={() => setShowEraserSizeSlider(false)} />
+        <View style={toolStyles.sliderDropdown}>
+          <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+            <Slider
+              value={eraserSize}
+              minimumValue={minSize}
+              maximumValue={maxSize}
+              step={1}
+              style={{ flex: 1, height: 40 }}
+              onValueChange={(value) => {
+                setEraserSize(value);
+                if (onSelectEraserSize) onSelectEraserSize(value);
+              }}
+            />
+            <Text style={toolStyles.sliderValueText}>{Math.round(eraserSize)}px</Text>
+          </View>
+          <View>
+            <NicerButton
+              style={toolStyles.shapeButton}
+              activeOpacity={0.7}
+              textStyle = {toolStyles.shapeText}>
+              {"✓"}
+            </NicerButton>
           </View>
         </View>
       )}
@@ -710,7 +758,7 @@ const ToolBar = ({ onSelectTool, onSelectColor, currentTool,
  Pan Gesture https://docs.swmansion.com/react-native-gesture-handler/docs/gestures/pan-gesture/
 */
 
-const BlankSketchPad = ({ navigation, route}) => {
+const BlankSketchPad = ({ navigation, route }) => {
   //To track the actual gestures, we need to store the path that is made from the touch gestures
     //to store the path, we use an array that we continously append to that stores
   const [paths, setPaths] = useState([]);
@@ -761,7 +809,14 @@ const BlankSketchPad = ({ navigation, route}) => {
 
   const undo = () => {
     setPaths(prev => {
-      if (prev.length === 0) return prev; // can't undo without paths
+      if (prev.length === 0) {
+        // catch below for empty sketch from clear
+        setRedoStack(r => {
+          if (r.length === 0) return r;
+          return r.slice(0, -1);
+        });
+        return redoStack.length > 0 ? redoStack[redoStack.length - 1] : prev;
+      }
       const last = prev[prev.length - 1]
       setRedoStack(r => [...r, last]);
       return prev.slice(0, -1);
@@ -777,8 +832,19 @@ const BlankSketchPad = ({ navigation, route}) => {
     });
   };
 
+  const clearCanvas = () => {
+    setPaths(prev => {
+      if (prev.length > 0) {
+        // clear but save for undo
+        setRedoStack([prev]);
+        return [];
+      }
+      return prev;
+    });
+  };
+
   useEffect(() => {
-    navigation.setParams({ undo, redo });
+    navigation.setParams({ undo, redo, clearCanvas });
   }, [paths, redoStack]);
 
   //to actually update our array of coordinates, we need to copy over the elements (coordinates) and continuosly extend the length
@@ -839,14 +905,13 @@ const BlankSketchPad = ({ navigation, route}) => {
     const endx = x, endy = y;
 
     const shapePath = Skia.Path.Make();
-    
 
     const shape = selectedShape;
     const isFilled = shape === '\u25cf' || shape === '\u25a0';
     const isCircle = shape === '\u25cb' || shape === '\u25cf';
 
     if (isCircle) { // code for properly drawing circles/ellipses
-      // Calculate bounding box with start and end as opposite corners
+      // calculate bounding box with start and end as opposite corners
       const minX = Math.min(startx, endx);
       const maxX = Math.max(startx, endx);
       const minY = Math.min(starty, endy);
