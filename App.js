@@ -330,6 +330,53 @@ const SavedDrawings = ({navigation, route}) => {
   );
 };
 
+/* Created outline drawings with array of possible pictures to be chosen. */
+const OutlineDrawings = ({ navigation }) => {
+
+  const data = [
+    {id: 1, name: "Flower", source: require("./ImageOutlines/flower.png")}, 
+    {id: 2, name: "Pumpkin", source: require("./ImageOutlines/pumpkin.png")},
+    {id: 3, name: "Tiger", source: require("./ImageOutlines/tiger.png")},
+    {id: 4, name: "Bunny", source: require("./ImageOutlines/bunny.png")},
+      
+  ];
+
+  const openDesign = (design) => {
+    navigation.navigate("Sketch Pad", { design });
+  };
+
+  return (
+    <View style={[defaultStyles.sketchPad, { alignItems: "stretch" }]}>
+      <PageHeader>
+        <Text style={{ color: "black", textAlign: "center"}}>Choose an Outline!</Text>
+      </PageHeader>
+
+      {/* Set Flatlist with 2 columns in order to display the possible images within 2 columns */}
+      <FlatList
+        data={data}
+        keyExtractor={(item) => item.id.toString()}
+        numColumns={2}
+        contentContainerStyle={{ paddingHorizontal: 20 }}
+        columnWrapperStyle={{ justifyContent: "space-between" }}
+        /* render each item from array */
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            /* Within each picture pressed, call openDesign and route will be sent to sketchpad later on*/
+            onPress={() => openDesign(item)}
+            style={{ flex: 1, padding: 10, alignItems: "center"}} 
+          >
+            <Image source={item.source} style={{ width: 150, height: 150 }} />
+            <Text>{item.name}</Text>
+          </TouchableOpacity>
+        )}
+      />
+    </View>
+  );
+};
+
+
+
+
 // App - define initial app component
 const DrawzAll = () => {
   // fixed a naming mismatch
@@ -369,6 +416,16 @@ const DrawzAll = () => {
               </View>
             )
           })}/>
+          <Drawer.Screen name = "Outline" component = {OutlineDrawings} options = 
+            {{title: "Outlines",
+              headerStyle: {
+                backgroundColor: '#232527ff',
+              },
+                headerTintColor: '#FFFFFF',
+                headerTitleStyle: {
+                fontWeight: '300',
+              },
+            }}/>
         {/* Saved Drawings is now part of the Gallery native stack */}
       </Drawer.Navigator>
     </NavigationContainer>
@@ -867,78 +924,99 @@ const BlankSketchPad = ({ navigation, route}) => {
   const onSelectBrushSize = (size) => setBrushSize(size);
   const onSelectEraserSize = (size) => setEraserSize(size);
 
+  /* get navigation route from outlines to sketchpad */
+  const design = route.params?.design;
+  const outline = design?.source;
+
   return (
     //GestureDetector wraps around the canvas component [treated like a view] to capture any panGesture related events, its like when u drag an item on a screen
     //WE CAN EDIT THE STOKE RELATED THINGS ALONGSIDE THE COLOR!!!
     <View style={{ flex: 1, flexDirection: 'column' }}>
       <GestureDetector gesture={pan} style={{ flex: 1 }}>
-        <Canvas style={{ flex: 1, backgroundColor: "white" }}>
-          {paths.map((item, index) => {
-            // pen
-            if (item.tool === "pen") {
-              return (
-                <Path
-                  key={index}
-                  path={item.path}
-                  color={item.color}
-                  style="stroke"
-                  strokeWidth={item.strokeWidth || brushSize}
-                  strokeJoin="round"
-                  strokeCap="round"
-                />
-              );
-            }
-            // eraser
-            if (item.tool === "eraser") {
-              return (
-                <Path
-                  key={index}
-                  path={item.path}
-                  color="#FFFFFF"
-                  style="stroke"
-                  strokeWidth={item.strokeWidth || eraserSize}
-                />
-              );
-            }
-            // shapes filled
-            if (item.tool === "shape-fill") {
-              return (
-                <Path
-                  key={index}
-                  path={item.path}
-                  color={item.color}
-                  style="fill"
-                />
-              );
-            }
-            // shapes outline, width = pen width
-            if (item.tool === "shape") {
-              return (
-                <Path
-                  key={index}
-                  path={item.path}
-                  color={item.color}
-                  style="stroke"
-                  strokeWidth={item.strokeWidth || brushSize}
-                  strokeJoin="round"
-                  strokeCap="round"
-                />
-              );
-            }
-          })}
-          {/* shape preview below */}
-          {previewShape && (
-            <Path
-              key="preview"
-              path={previewShape.path}
-              color={previewShape.color}
-              style={previewShape.tool === "shape-fill" ? "fill" : "stroke"}
-              strokeWidth={previewShape.strokeWidth || brushSize}
-              strokeJoin="round"
-              strokeCap="round"
+        {/* Create a first view that contains the image outline */}
+        <View style={{ flex: 1, position: "relative"}}>
+          {outline && (
+            <Image
+              source={outline}
+              style={{
+                position: "absolute",
+                width: "100%",
+                height: "100%",
+                resizeMode: "contain",
+                backgroundColor: "white",
+              }}
             />
           )}
-        </Canvas>
+          {/* Set the canvas to be transparent so skia is present while containing image*/}
+          <Canvas style={{ flex: 1, backgroundColor: "transparent" }}>
+            {paths.map((item, index) => {
+              // pen
+              if (item.tool === "pen") {
+                return (
+                  <Path
+                    key={index}
+                    path={item.path}
+                    color={item.color}
+                    style="stroke"
+                    strokeWidth={item.strokeWidth || brushSize}
+                    strokeJoin="round"
+                    strokeCap="round"
+                  />
+                );
+              }
+              // eraser
+              if (item.tool === "eraser") {
+                return (
+                  <Path
+                    key={index}
+                    path={item.path}
+                    color="transparent"
+                    style="stroke"
+                    strokeWidth={item.strokeWidth || eraserSize}
+                    blendMode="clear"
+                  />
+                );
+              }
+              // shapes filled
+              if (item.tool === "shape-fill") {
+                return (
+                  <Path
+                    key={index}
+                    path={item.path}
+                    color={item.color}
+                    style="fill"
+                  />
+                );
+              }
+              // shapes outline, width = pen width
+              if (item.tool === "shape") {
+                return (
+                  <Path
+                    key={index}
+                    path={item.path}
+                    color={item.color}
+                    style="stroke"
+                    strokeWidth={item.strokeWidth || brushSize}
+                    strokeJoin="round"
+                    strokeCap="round"
+                  />
+                );
+              }
+            })}
+            {/* shape preview below */}
+            {previewShape && (
+              <Path
+                key="preview"
+                path={previewShape.path}
+                color={previewShape.color}
+                style={previewShape.tool === "shape-fill" ? "fill" : "stroke"}
+                strokeWidth={previewShape.strokeWidth || brushSize}
+                strokeJoin="round"
+                strokeCap="round"
+              />
+            )}
+          </Canvas>
+        </View>
       </GestureDetector>
       <ToolBar 
         onSelectTool={onSelectTool} 
