@@ -14,9 +14,7 @@ import Slider from "@react-native-community/slider";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { Canvas, Path, Skia } from "@shopify/react-native-skia";
 import { PermissionsAndroid } from 'react-native';
-import { createMMKV } from 'react-native-mmkv';
-import { DocumentDirectoryPath, RNFS } from 'react-native-fs';
-
+import RNFS, { DocumentDirectoryPath } from 'react-native-fs';
 const Drawer = createDrawerNavigator();
 // Default Stylesheet (just to separate the defaults from special cases)
 const defaultStyles = StyleSheet.create({
@@ -185,25 +183,6 @@ const DefaultText = (props) => {
   );
 }
 
-  /*Local storage permissions from week 11 notes -> lets us access storage*/
-const requestStoragePermission = async () => {
-  try {
-    //multiple permissions -> https://developer.android.com/training/permissions/requesting
-    const permissions = [
-      PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
-      PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE
-    ];
-    const granted = await PermissionsAndroid.requestMultiple(permissions);
-    if (permissions.every(perm => granted[perm] === PermissionsAndroid.RESULTS.GRANTED)) {//checks if all the permissions were granted!
-      console.log("You can use the storage");
-    } else {
-      console.log("Storage permission denied");
-    }
-  } catch (err) {
-    console.warn(err);
-  }
-};
-
 
 //saving sketches as json! -> takes the array of paths and writes them as a json file to then be able to be reloaded later
 //since skia suppports svg -> we can convert the paths to svg strings and save those as json!
@@ -283,11 +262,6 @@ const Profile = ({navigation}) => {
       <View style = {defaultStyles.midPage}>
         <ActivityIndicator size="large" color="#000000ff" />
         <DefaultText content = "Fetching profile details..."/>
-        <Button
-          title="Request Storage Permission"
-          color="#007AFF"
-          onPress={requestStoragePermission}
-        />
       </View>
       <View style = {defaultStyles.bottomPage}>
         <Text style = {defaultStyles.lightText}>
@@ -321,9 +295,35 @@ const SavedDrawings = ({navigation}) => {
   );
 };
 
+
+
+//check if we have the permissions
+
+const checkStoragePermissions = async () => {
+  const readGranted = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES);
+  const writeGranted = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE);
+  return readGranted && writeGranted;
+};
 // App - define initial app component
 const DrawzAll = () => {
-  // fixed a naming mismatch
+  React.useEffect(() => {
+    const requestStoragePermissionOnLoad = async () => {
+      const readGranted = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES);
+      const writeGranted = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE);
+      if (!readGranted || !writeGranted) {
+        const permissions = [
+          PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
+          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+        ];
+        await PermissionsAndroid.requestMultiple(permissions);
+      } else {
+        // Permissions already granted, continue as normal!!!
+        console.log('Storage permissions already granted');
+      }
+    };
+    requestStoragePermissionOnLoad();
+  }, []);
+
   return (
     <NavigationContainer>
       <Drawer.Navigator>
