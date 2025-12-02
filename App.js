@@ -278,7 +278,8 @@ const Gallery = ({navigation}) => {
               </NicerButton>
                 {`\n\n`}
               </Text>
-            </View>}
+            </View>
+            }
         />
       </ImageBackground>
     </View>
@@ -513,15 +514,22 @@ const ToolBar = ({ onSelectTool, onSelectColor, currentTool,
       {/* Pen button: single tap selects tool, double-tap handled in handleBrushTap 
         * switched to touchableOpacity for using a symbol instead of a big ugly button
       */}
-      <TouchableOpacity onPress={handleBrushTap}>
-        <Text style={{ fontSize: 32, color: "#FFFFFF" }}>✐</Text>
-      </TouchableOpacity>
+      <NicerButton 
+          style={toolStyles.shapeButton}
+          activeOpacity={0.7}
+          onPress={handleBrushTap}
+          textStyle = {toolStyles.toolBarText}>
+            {"✐"}
+      </NicerButton>
 
       {/* Eraser button: single tap selects tool, double-tap handled in handleEraserTap */}
-      <TouchableOpacity onPress={handleEraserTap}>
-        <Text style={{ fontSize: 32, color: "#FFFFFF" }}>⌫</Text>
-      </TouchableOpacity>
-        
+      <NicerButton 
+          style={toolStyles.shapeButton}
+          activeOpacity={0.7}
+          onPress={handleEraserTap}
+          textStyle = {toolStyles.toolBarText}>
+            {"⌫"}
+      </NicerButton>  
       {/* old code for double tap below
             {
         (() => {
@@ -560,9 +568,13 @@ const ToolBar = ({ onSelectTool, onSelectColor, currentTool,
         */}
       
       <View style={toolStyles.shapeContainer}>
-        <TouchableOpacity onPress={handleShapePress}>
-          <Text style={{ fontSize: 32, color: "#FFFFFF" }}>❏</Text>
-        </TouchableOpacity>
+        <NicerButton 
+          style={toolStyles.shapeButton}
+          activeOpacity={0.7}
+          onPress={handleShapePress}
+          textStyle = {toolStyles.toolBarText}>
+            {"❏"}
+        </NicerButton>
         {showShapeOptions && (
             <View style={toolStyles.shapeDropdown}>
               {['\u25cb', '\u25a1', '\u25cf', '\u25a0'].map((shape) => (
@@ -582,9 +594,12 @@ const ToolBar = ({ onSelectTool, onSelectColor, currentTool,
         * Color picker component and styling
         * Uses react-native-wheel-color-picker
         */}
-      <TouchableOpacity onPress={() => handleToolPress('color')}>
-        <Text style={{ fontSize: 32, color: "#FFFFFF" }}>🎨</Text>
-      </TouchableOpacity>
+      <NicerButton
+        style={toolStyles.shapeButton}
+        activeOpacity={0.7}
+        onPress={() => handleToolPress('color')}>
+        {"🎨"}
+      </NicerButton>
       {showColorPicker && (
         <View style={toolStyles.colorPicker}>
           <ColorPicker
@@ -630,9 +645,13 @@ const ToolBar = ({ onSelectTool, onSelectColor, currentTool,
             <Text style={toolStyles.sliderValueText}>{Math.round(brushSize)}px</Text>
           </View>
           <View>
-            <TouchableOpacity onPress={() => setShowBrushSizeSlider(false)}>
-              <Text style={{ fontSize: 28, color: "#282c2e" }}>✓</Text>
-            </TouchableOpacity>
+            <NicerButton
+              style={toolStyles.shapeButton}
+              activeOpacity={0.7} 
+              textStyle = {toolStyles.shapeText}
+              onPress={() => setShowBrushSizeSlider(false)}>
+              {"✓"}
+            </NicerButton>
           </View>
         </View>
       )}
@@ -654,9 +673,12 @@ const ToolBar = ({ onSelectTool, onSelectColor, currentTool,
             <Text style={toolStyles.sliderValueText}>{Math.round(eraserSize)}px</Text>
           </View>
           <View>
-            <TouchableOpacity onPress={() => setShowEraserSizeSlider(false)}>
-              <Text style={{ fontSize: 28, color: "#282c2e" }}>✓</Text>
-            </TouchableOpacity>
+            <NicerButton
+              style={toolStyles.shapeButton}
+              activeOpacity={0.7}
+              textStyle = {toolStyles.shapeText}>
+              {"✓"}
+            </NicerButton>
           </View>
         </View>
       )}

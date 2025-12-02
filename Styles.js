@@ -357,17 +357,26 @@ export const toolStyles = StyleSheet.create({
   shapeOption: { // margin between the shape options
     marginHorizontal: 20,
   },
+  shapeButton: {
+	alignItems: 'center',
+	justifyContent: 'center',
+	padding: 10,
+	borderRadius: 8,
+  },
   shapeText: { // shape size and color
     fontSize: 30,
     color: '#282c2e',
-    textAlign: 'center',
+  },
+  toolBarText: {
+	 fontSize: 32,
+	 color: "#FFFFFF",
   },
   colorPicker: { // Styling for color wheel
     position: 'absolute',
     bottom: 100,
     left: 0, // stretches across screen
     right: 0,
-    backgroundColor: "#fff",
+    backgroundColor: "#e9e9e9ff",
     borderTopLeftRadius: 10, // rounds the corners
     borderTopRightRadius: 10,
     padding: 10,
