@@ -698,6 +698,25 @@ const BlankSketchPad = ({ navigation, route}) => {
     await savePathsAsJson(paths, filename);
     console.log('Saved vector sketch to', filename);
   };
+  //load from vector path data!
+  const loadPathsFromJson = async (filename = 'sketch.json') => {
+    const path = DocumentDirectoryPath + '/' + filename;
+    try {
+      const fileContent = await RNFS.readFile(path, 'utf8');
+      const parsed = JSON.parse(fileContent);
+      // Rebuild paths array that we had saved originally
+      const loadedPaths = parsed.map(obj => ({
+        color: obj.color,
+        tool: obj.tool,
+        strokeWidth: obj.strokeWidth,
+        path: Skia.Path.MakeFromSVGString(obj.svg),
+      }));
+      return loadedPaths;
+    } catch (err) {
+      console.log('error loading drawing:', err);
+      return [];
+    }
+  };
 
   //to make the drag work,we call the onstart, onupdate, and onend functions with their inputs as the event coordinates
   const pan = Gesture.Pan()
@@ -795,6 +814,14 @@ const BlankSketchPad = ({ navigation, route}) => {
           })}
         </Canvas>
       </GestureDetector>
+      <Button
+        title="Load Sketch!"
+        color="#007AFF"
+        onPress={async () => {
+          const loaded = await loadPathsFromJson('sketch.json');
+          setPaths(loaded);
+        }}
+      />
       <Button
         title="Save Sketch!"
         color="#00C853"
