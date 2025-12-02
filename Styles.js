@@ -49,7 +49,16 @@ export const defaultStyles = StyleSheet.create({
   darkText: {
 	fontSize: 12,
 	color: "#000000ff",
-  }
+  },
+  navBarStyle: {
+	flexDirection: "row",
+	gap: 15,
+	marginRight: 10,
+  },
+  toolBarButton: {
+	fontSize: 36,
+	color: "#FFFFFF",
+  },
 });
 
 // Styles for Home Page
@@ -198,7 +207,6 @@ export const galleryStyles = StyleSheet.create({
 		flex: 1,
 		margin: 6,
 		height: 150,
-		backgroundColor: '#abababff',
 		borderRadius: 8,
 		borderWidth: 2,
 		borderColor: '#676767ff',
@@ -209,6 +217,7 @@ export const galleryStyles = StyleSheet.create({
 	},
 	itemTitle: {
 		color: '#000000ff',
+		backgroundColor: '#ffffffff',
 		fontWeight: 'bold',
 	},
 	itemButtonRow: {
@@ -279,40 +288,33 @@ export const savedDrawingsStyles = StyleSheet.create({
 		},
 		}),
 		flex: 1,
-		justifyContent: "flex-start",
 	},
-	topRow: {
+	bottomRow: {
 		flexDirection: 'row',
 		width: '100%',
 		alignItems: 'stretch',
 	},
-	topPageL: {
+	bottomPageL: {
 		flex: 0.5,
 		backgroundColor: '#292929ff',
 		justifyContent: 'flex-end',
-		padding: 8,
+		padding: 10,
 	},
 
-	topPageR: {
+	bottomPageR: {
 		flex: 0.5,
 		backgroundColor: '#292929ff',
 		justifyContent: 'flex-end',
-		padding: 8,
+		padding: 10,
 	},
-  	bottomPage: {
+  	topPage: {
 		flex: 4,
 		width: "100%",
-		backgroundColor: "#343434ff",
-	},
-	previewContainer: {
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
+		backgroundColor: "#ffffffff",
 	},
 	previewBox: {
-		height: '90%',
-		width: '90%',
-		backgroundColor: '#ffffffff',
+		flex: 1,
+		backgroundColor: "transparent",
 		borderRadius: 8,
 		justifyContent: 'center',
 		alignItems: 'center',

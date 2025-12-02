@@ -192,27 +192,49 @@ const Gallery = ({navigation}) => {
     );
   };
 
-  const renderItem = ({item}) => (
-    <View style={galleryStyles.itemContainer}>
-      <Text style={galleryStyles.itemTitle}>{item.title}</Text>
-      <View style={galleryStyles.itemButtonRow}>
-        <NicerButton
-          style={galleryStyles.openButton}
-          onPress={() => openItem(item)}
-          accessibilityLabel={`Open ${item.title}`}
-        >
-          Open
-        </NicerButton>
-        <NicerButton
-          style={galleryStyles.removeButton}
-          onPress={() => removeItem(item.id)}
-          accessibilityLabel={`Remove ${item.title}`}
-        >
-          Remove
-        </NicerButton>
-      </View>
-    </View>
-  );
+  // Randomizes background image for the gallery items (not using compressed actual images, so I wanted to make these more dynamic)
+  const galleryBackgrounds = [
+    require('./images/galleryItem1.jpg'),
+    require('./images/galleryItem2.jpg'),
+    require('./images/galleryItem3.jpg'),
+    require('./images/galleryItem4.jpg'),
+    require('./images/galleryItem5.jpg'),
+    require('./images/galleryItem6.jpg'),
+    require('./images/galleryItem7.jpg'),
+    require('./images/galleryItem8.jpg'),
+  ];
+
+  const backgroundMapRef = useRef({});
+
+  const renderItem = ({item}) => {
+    let background = backgroundMapRef.current[item.id];
+    background = galleryBackgrounds[Math.floor(Math.random() * galleryBackgrounds.length)];
+    backgroundMapRef.current[item.id] = background;
+
+    return (
+      <ImageBackground source = {background} style = {galleryStyles.itemContainer}>
+        <Text style={galleryStyles.itemTitle}>
+            {`   ${item.title}   `}
+        </Text>
+        <View style={galleryStyles.itemButtonRow}>
+          <NicerButton
+            style={galleryStyles.openButton}
+            onPress={() => openItem(item)}
+            accessibilityLabel={`Open ${item.title}`}
+          >
+            Open
+          </NicerButton>
+          <NicerButton
+            style={galleryStyles.removeButton}
+            onPress={() => removeItem(item.id)}
+            accessibilityLabel={`Remove ${item.title}`}
+          >
+            Remove
+          </NicerButton>
+        </View>
+      </ImageBackground>
+    );
+  };
 
   return (
     <View style={{flex: 1}}>
@@ -296,36 +318,34 @@ const SavedDrawings = ({navigation, route}) => {
 
   return (
     <View style={savedDrawingsStyles.savedDrawings}>
-      <View style={savedDrawingsStyles.topRow}>
-        <View style={savedDrawingsStyles.topPageL}>
-          <Button
-            color="#2d2d2dff"
-            title="Open in Editor"
-            onPress={() => navTo({location: "Sketch Pad"})}
-          />
-        </View>
-        <View style={savedDrawingsStyles.topPageR}>
-          <Button
-            color="#2d2d2dff"
-            title="Back to Gallery"
-            onPress={() => navTo({location: "GalleryHome"})}
-          />
-        </View>
-      </View>
-      <View style={savedDrawingsStyles.bottomPage}>
+      <View style={savedDrawingsStyles.topPage}>
         {item ? (
-          <View style={savedDrawingsStyles.previewContainer}>
-            <View style={savedDrawingsStyles.previewBox}>
-              <Text style={defaultStyles.darkText}>
-                {`Preview: Item ${item.id}`}
-              </Text>
-            </View>
+          <View style={savedDrawingsStyles.previewBox}>
+            <Text style={defaultStyles.darkText}>
+              {`Preview: Item ${item.id}`}
+            </Text>
           </View>
         ) : (
           <Text style={defaultStyles.lightText}>
             No saved drawing selected. Open one from the Gallery.
           </Text>
         )}
+      </View>
+      <View style={savedDrawingsStyles.bottomRow}>
+        <View style={savedDrawingsStyles.bottomPageL}>
+          <Button
+            color="#2d2d2dff"
+            title="Open in Editor"
+            onPress={() => navTo({location: "Sketch Pad"})}
+          />
+        </View>
+        <View style={savedDrawingsStyles.bottomPageR}>
+          <Button
+            color="#2d2d2dff"
+            title="Back to Gallery"
+            onPress={() => navTo({location: "GalleryHome"})}
+          />
+        </View>
       </View>
     </View>
   );
@@ -417,15 +437,15 @@ const DrawzAll = () => {
             headerTintColor: "#FFFFFF",
             headerTitleStyle: {fontWeight: "300"},
             headerRight: () => ( 
-              <View style={{ flexDirection: "row", gap: 15, marginRight: 10}}> 
+              <View style={defaultStyles.navBarStyle}> 
                 <TouchableOpacity onPress={() => route.params?.undo?.()}>
-                  <Text style={{ fontSize: 36, color: "#FFFFFF" }}>↺</Text>
+                  <Text style={defaultStyles.toolBarButton}>↺</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => route.params?.redo?.()}>
-                  <Text style={{ fontSize: 36, color: "#FFFFFF" }}>↻</Text>
+                  <Text style={defaultStyles.toolBarButton}>↻</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => route.params?.clearCanvas?.()}>
-                  <Text style={{ fontSize: 36, color: "#FFFFFF" }}>🗑</Text>
+                  <Text style={defaultStyles.toolBarButton}>🗑</Text>
                 </TouchableOpacity>
               </View>
             )
@@ -462,8 +482,8 @@ const GalleryStack = () => {
           },
         }}/>
       <Stack.Screen name = "Saved Drawings" component = {SavedDrawings} options = 
-        {{
-            title: "Saved Drawing",
+        {({ navigation, route }) => ({
+            title: "Preview Item: ",
             headerStyle: {
             backgroundColor: '#232527ff',
           },
@@ -471,7 +491,14 @@ const GalleryStack = () => {
             headerTitleStyle: {
             fontWeight: '300',
           },
-        }}/>
+          headerRight: () => (
+            <View style = {defaultStyles.navBarStyle}>
+              <Text>
+                {/* display item title here when we have saving working */}
+              </Text>
+            </View>
+          )
+        })}/>
     </Stack.Navigator>
   );
 }
