@@ -16,7 +16,7 @@ import Slider from "@react-native-community/slider";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { Canvas, Path, Skia } from "@shopify/react-native-skia";
 // Style imports
-import { defaultStyles, toolStyles, galleryStyles, savedDrawingsStyles, homeStyles } from './Styles';
+import { defaultStyles, toolStyles, galleryStyles, savedDrawingsStyles, homeStyles, outlineStyles } from './Styles';
 
 // Navigation setup
 const Drawer = createDrawerNavigator();
@@ -347,30 +347,35 @@ const OutlineDrawings = ({ navigation }) => {
   };
 
   return (
-    <View style={[defaultStyles.sketchPad, { alignItems: "stretch" }]}>
-      <PageHeader>
-        <Text style={{ color: "black", textAlign: "center"}}>Choose an Outline!</Text>
-      </PageHeader>
-
-      {/* Set Flatlist with 2 columns in order to display the possible images within 2 columns */}
-      <FlatList
-        data={data}
-        keyExtractor={(item) => item.id.toString()}
-        numColumns={2}
-        contentContainerStyle={{ paddingHorizontal: 20 }}
-        columnWrapperStyle={{ justifyContent: "space-between" }}
-        /* render each item from array */
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            /* Within each picture pressed, call openDesign and route will be sent to sketchpad later on*/
-            onPress={() => openDesign(item)}
-            style={{ flex: 1, padding: 10, alignItems: "center"}} 
-          >
-            <Image source={item.source} style={{ width: 150, height: 150 }} />
-            <Text>{item.name}</Text>
-          </TouchableOpacity>
-        )}
-      />
+    <View style={outlineStyles.outlines}>
+      <View style={outlineStyles.topPage}>
+        <SubHeader style = {outlineStyles.headText}>
+          Tap an Outline to Bring it to Your Sketch Pad!
+        </SubHeader>
+      </View>
+      <View style={outlineStyles.bottomPage}>
+        <ImageBackground source={require('./images/outlines.jpg')} style = {outlineStyles.flatlistContainer}>
+            {/* Set Flatlist with 2 columns in order to display the possible images within 2 columns */}
+            <FlatList
+              data={data}
+              keyExtractor={(item) => item.id.toString()}
+              numColumns={2}
+              contentContainerStyle={{ paddingHorizontal: 20 }}
+              columnWrapperStyle={{ justifyContent: "space-between" }}
+              /* render each item from array */
+              renderItem={({ item }) => (
+                <NicerButton
+                  /* Within each picture pressed, call openDesign and route will be sent to sketchpad later on*/
+                  style = {outlineStyles.outlineButton}
+                  onPress={() => openDesign(item)}
+                >
+                  <Image source={item.source} style={outlineStyles.outlineImages} />
+                  <Text style = {outlineStyles.outlineText}>{item.name}</Text>
+                </NicerButton>
+              )}
+            />
+        </ImageBackground>
+      </View>
     </View>
   );
 };
@@ -426,7 +431,7 @@ const DrawzAll = () => {
             )
           })}/>
           <Drawer.Screen name = "Outline" component = {OutlineDrawings} options = 
-            {{title: "Outlines",
+            {{title: "Templates",
               headerStyle: {
                 backgroundColor: '#232527ff',
               },

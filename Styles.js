@@ -435,3 +435,71 @@ export const toolStyles = StyleSheet.create({
 	textAlign: 'right'
   }
 });
+
+// Outline Styles
+export const outlineStyles = StyleSheet.create({
+	outlines: {
+		...Platform.select({
+			ios: {
+				backgroundColor: "#b0e5ffff",
+			},
+			android: {
+				backgroundColor: "#adffc6ff",
+			},
+		}),
+		flex: 1,
+		alignItems: "stretch" 
+ 	},
+	topPage: {
+		flex: .3,
+		width: "100%",
+		backgroundColor: "#292929ff",
+		justifyContent: "center",
+		alignItems: "center",
+	},
+	bottomPage: {
+		flex: 4,
+		width: "100%",
+		flexDirection: "row",
+		backgroundColor: "#343434ff",
+	},
+	headText: {
+		color: "black",
+		fontSize: 30,
+		fontWeight: "bold",
+		margin: 25,
+		textAlign: "center",
+	},
+	outlineText: {
+		color: "#000000ff",
+		fontWeight: "bold",
+  	},
+	outlineButton: {
+		flex: 1,
+		padding: 10,
+		margin: 10,
+		alignItems: "center",
+		borderLeftWidth: 4,
+		borderBottomWidth: 4,
+		borderRadius: 8,
+		...Platform.select({
+			ios: {
+				borderColor: "#1f4b60ff",
+			},
+			android: {
+				borderColor: "#28643aff",
+			},
+		}),
+		backgroundColor: "#ffffffff",
+		width: 200,
+		height: 200,
+	},
+	outlineImages: {
+		width: 150,
+		height: 150,
+	},
+	flatlistContainer: {
+		flex: 1,
+		resizeMode: "cover",
+	},
+});
