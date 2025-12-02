@@ -673,17 +673,29 @@ const ToolBar = ({ onSelectTool, onSelectColor, currentTool,
           />
           {/* Buttons to hide the color picker */}
           <View style={toolStyles.colorConfirms}>
-            <Button title="Done" color="green" onPress={() => {
+            <NicerButton
+              style={toolStyles.colorConfirms}
+              activeOpacity={0.7} 
+              textStyle = {toolStyles.shapeText}
+              onPress={() => {
                 setShowColorPicker(false);
                 onSelectTool(previousTool);
-            }}
-            />
-            <Button title="Cancel" color="red" onPress={() => { 
-              setShowColorPicker(false);
-              onSelectTool(previousTool);
-              setCurrentColor(currentColor);
-            }}  
-            />
+              }}>
+              {"✓"}
+            </NicerButton>
+
+            <NicerButton
+              style={toolStyles.colorConfirms}
+              activeOpacity={0.7} 
+              textStyle = {toolStyles.shapeText}
+              onPress={() => { 
+                setShowColorPicker(false);
+                onSelectTool(previousTool);
+                setCurrentColor(currentColor);
+              }}>
+              {"✗"}
+            </NicerButton>
+
           </View>
         </View>
       )}
