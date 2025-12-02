@@ -357,7 +357,7 @@ const DrawzAll = () => {
             fontWeight: '300',
           },
         }}/>
-        {/* Changed to touchableOpacity for symbols*/}
+        {/* changed to touchableOpacity for unicode symbols*/}
         <Drawer.Screen name = "Sketch Pad" component = {BlankSketchPad} options = 
           {({ navigation, route }) => ({
             title: "Blank Sketch",
@@ -371,6 +371,9 @@ const DrawzAll = () => {
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => route.params?.redo?.()}>
                   <Text style={{ fontSize: 36, color: "#FFFFFF" }}>↻</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => route.params?.clearCanvas?.()}>
+                  <Text style={{ fontSize: 36, color: "#FFFFFF" }}>🗑</Text>
                 </TouchableOpacity>
               </View>
             )
@@ -749,7 +752,14 @@ const BlankSketchPad = ({ navigation }) => {
 
   const undo = () => {
     setPaths(prev => {
-      if (prev.length === 0) return prev; // can't undo without paths
+      if (prev.length === 0) {
+        // catch below for empty sketch from clear
+        setRedoStack(r => {
+          if (r.length === 0) return r;
+          return r.slice(0, -1);
+        });
+        return redoStack.length > 0 ? redoStack[redoStack.length - 1] : prev;
+      }
       const last = prev[prev.length - 1]
       setRedoStack(r => [...r, last]);
       return prev.slice(0, -1);
@@ -765,8 +775,19 @@ const BlankSketchPad = ({ navigation }) => {
     });
   };
 
+  const clearCanvas = () => {
+    setPaths(prev => {
+      if (prev.length > 0) {
+        // clear but save for undo
+        setRedoStack([prev]);
+        return [];
+      }
+      return prev;
+    });
+  };
+
   useEffect(() => {
-    navigation.setParams({ undo, redo });
+    navigation.setParams({ undo, redo, clearCanvas });
   }, [paths, redoStack]);
 
   //to actually update our array of coordinates, we need to copy over the elements (coordinates) and continuosly extend the length
@@ -827,7 +848,6 @@ const BlankSketchPad = ({ navigation }) => {
     const endx = x, endy = y;
 
     const shapePath = Skia.Path.Make();
-    
 
     const shape = selectedShape;
     const isFilled = shape === '\u25cf' || shape === '\u25a0';
