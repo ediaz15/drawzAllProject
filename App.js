@@ -15,9 +15,9 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { Canvas, Path, Skia } from "@shopify/react-native-skia";
 import { PermissionsAndroid } from 'react-native';
 import { createMMKV } from 'react-native-mmkv';
+import { DocumentDirectoryPath, RNFS } from 'react-native-fs';
 
 const Drawer = createDrawerNavigator();
-export const storage = createMMKV();
 // Default Stylesheet (just to separate the defaults from special cases)
 const defaultStyles = StyleSheet.create({
   homepage: {
@@ -188,25 +188,36 @@ const DefaultText = (props) => {
   /*Local storage permissions from week 11 notes -> lets us access storage*/
 const requestStoragePermission = async () => {
   try {
-    const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
-    {
-      title: "Storage Permission",
-      message: "App needs access to your storage to save drawings",
-      buttonNeutral: "Ask Me Later",
-      buttonNegative: "Cancel",
-      buttonPositive: "OK"
-    }
-  );
-    if (granted === PermissionsAndroid.RESULTS.GRANTED){
+    //multiple permissions -> https://developer.android.com/training/permissions/requesting
+    const permissions = [
+      PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
+      PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE
+    ];
+    const granted = await PermissionsAndroid.requestMultiple(permissions);
+    if (permissions.every(perm => granted[perm] === PermissionsAndroid.RESULTS.GRANTED)) {//checks if all the permissions were granted!
       console.log("You can use the storage");
     } else {
       console.log("Storage permission denied");
     }
-  } catch (err){
-      console.warn(err);
+  } catch (err) {
+    console.warn(err);
   }
-}
+};
+
+
+// Saves file to local storage after encoding it to a base64 string using RNFS
+//https://arcdev.medium.com/how-to-convert-an-image-into-base64-in-react-native-cbadbe72ec78
+
+const saveFile = async (data, filename) => {
+  const path = DocumentDirectoryPath + '/' + filename;
+  try {
+    await RNFS.writeFile(path, data, 'base64');
+    console.log(filename + ' written...', path);
+  } catch (err) {
+    console.log('error: ', err);
+  }
+};
+
 
 const HomePage = ({ navigation }) => { // added navigation function parameter
 
@@ -271,6 +282,11 @@ const Profile = ({navigation}) => {
           title="Request Storage Permission"
           color="#007AFF"
           onPress={requestStoragePermission}
+        />
+        <Button
+          title="Save File"
+          color="#c7430fff"
+          onPress={saveFile}
         />
       </View>
       <View style = {defaultStyles.bottomPage}>
@@ -562,6 +578,8 @@ const BlankSketchPad = ({ navigation, route}) => {
   const [paths, setPaths] = useState([]);
   const [redoStack, setRedoStack] = useState([]); // for undo/redo
   const currentPathRef = useRef(null);
+  //saves the current sketch using the snapshot feature from skia -> creates a png image and saves it to local storage
+  const canvasRef = useRef(null);
   //pan gesture is when we drag something across the screen, imagine a pixel we drag and we store its coordinates
   
   // stuff from old toolbelt
@@ -674,6 +692,20 @@ const BlankSketchPad = ({ navigation, route}) => {
     setRedoStack([]);
   };
 
+  //https://reactnative.dev/docs/imagebackground
+  //https://shopify.github.io/react-native-skia/docs/snapshotviews/ 
+  //https://www.reddit.com/r/reactnative/comments/lzwchc/how_would_i_save_an_image_to_a_file_in_assets/
+  //usea function to trigger the name of the sketch when saving -> future implementation
+  const saveSketchAsPng = async (filename = 'sketch.png') => {
+    if (!canvasRef.current){
+      return;
+    }
+    const image = canvasRef.current.makeImageSnapshot();
+    const base64 = image.encodeToBase64("png");
+    await saveFile(base64, filename);
+    console.log('Saved to', filename);
+  };
+
   //to make the drag work,we call the onstart, onupdate, and onend functions with their inputs as the event coordinates
   const pan = Gesture.Pan()
     .onStart((e) => {
@@ -717,9 +749,8 @@ const BlankSketchPad = ({ navigation, route}) => {
     //WE CAN EDIT THE STOKE RELATED THINGS ALONGSIDE THE COLOR!!!
     <View style={{ flex: 1, flexDirection: 'column' }}>
       <GestureDetector gesture={pan} style={{ flex: 1 }}>
-        <Canvas style={{ flex: 1, backgroundColor: "white" }}>
+        <Canvas style={{ flex: 1, backgroundColor: "white" }} ref={canvasRef}>
           {paths.map((item, index) => {
-            // pen
             if (item.tool === "pen") {
               return (
                 <Path
@@ -733,7 +764,6 @@ const BlankSketchPad = ({ navigation, route}) => {
                 />
               );
             }
-            // eraser
             if (item.tool === "eraser") {
               return (
                 <Path
@@ -745,7 +775,6 @@ const BlankSketchPad = ({ navigation, route}) => {
                 />
               );
             }
-            // shapes
             if (item.tool === "shape-fill") {
               return (
                 <Path
@@ -756,18 +785,40 @@ const BlankSketchPad = ({ navigation, route}) => {
                 />
               );
             }
+            if (item.tool === "shape") {
+              return (
+                <Path
+                  key={index}
+                  path={item.path}
+                  color={item.color}
+                  style="stroke"
+                  strokeWidth={brushSize}
+                  strokeJoin="round"
+                  strokeCap="round"
+                />
+              );
+            }
+            return null;
           })}
         </Canvas>
       </GestureDetector>
-      <ToolBar 
-        onSelectTool={onSelectTool} 
-        onSelectColor={onSelectColor} 
+      <Button
+        title="Save Your Sketch!"
+        color="#007AFF"
+        onPress={() => saveSketchAsPng('sketch.png')} 
+      />
+      <ToolBar
+        onSelectTool={onSelectTool}
+        onSelectColor={onSelectColor}
         currentTool={selectedTool}
       />
     </View>
   );
 };
 
+//removed comments cuz textNode error kept happening -> seemed to be from comments in the code -> from the item.tool part of the BlankSketchPad component!
+//saveSketchAsPng related -> //test title -> plan to have it towhere we can change name by prompting user to do so!!
+//linnks abt text nodes: https://github.com/Shopify/react-native-skia/issues/2687
 //Props to use when drawing..
 /*
 strokeWidth,
