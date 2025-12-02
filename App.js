@@ -205,13 +205,18 @@ const requestStoragePermission = async () => {
 };
 
 
-// Saves file to local storage after encoding it to a base64 string using RNFS
-//https://arcdev.medium.com/how-to-convert-an-image-into-base64-in-react-native-cbadbe72ec78
-
-const saveFile = async (data, filename) => {
+//saving sketches as json! -> takes the array of paths and writes them as a json file to then be able to be reloaded later
+//since skia suppports svg -> we can convert the paths to svg strings and save those as json!
+const savePathsAsJson = async (paths, filename = 'sketch.json') => {
   const path = DocumentDirectoryPath + '/' + filename;
   try {
-    await RNFS.writeFile(path, data, 'base64');
+    const serialized = paths.map(p => ({
+      color: p.color,
+      tool: p.tool,
+      strokeWidth: p.strokeWidth,
+      svg: p.path.toSVGString(),
+    }));
+    await RNFS.writeFile(path, JSON.stringify(serialized), 'utf8');
     console.log(filename + ' written...', path);
   } catch (err) {
     console.log('error: ', err);
@@ -282,11 +287,6 @@ const Profile = ({navigation}) => {
           title="Request Storage Permission"
           color="#007AFF"
           onPress={requestStoragePermission}
-        />
-        <Button
-          title="Save File"
-          color="#c7430fff"
-          onPress={saveFile}
         />
       </View>
       <View style = {defaultStyles.bottomPage}>
@@ -692,18 +692,11 @@ const BlankSketchPad = ({ navigation, route}) => {
     setRedoStack([]);
   };
 
-  //https://reactnative.dev/docs/imagebackground
-  //https://shopify.github.io/react-native-skia/docs/snapshotviews/ 
-  //https://www.reddit.com/r/reactnative/comments/lzwchc/how_would_i_save_an_image_to_a_file_in_assets/
-  //usea function to trigger the name of the sketch when saving -> future implementation
-  const saveSketchAsPng = async (filename = 'sketch.png') => {
-    if (!canvasRef.current){
-      return;
-    }
-    const image = canvasRef.current.makeImageSnapshot();
-    const base64 = image.encodeToBase64("png");
-    await saveFile(base64, filename);
-    console.log('Saved to', filename);
+
+  // Save as vector path data (JSON)
+  const saveSketchAsJson = async (filename = 'sketch.json') => {
+    await savePathsAsJson(paths, filename);
+    console.log('Saved vector sketch to', filename);
   };
 
   //to make the drag work,we call the onstart, onupdate, and onend functions with their inputs as the event coordinates
@@ -803,9 +796,9 @@ const BlankSketchPad = ({ navigation, route}) => {
         </Canvas>
       </GestureDetector>
       <Button
-        title="Save Your Sketch!"
-        color="#007AFF"
-        onPress={() => saveSketchAsPng('sketch.png')} 
+        title="Save Sketch!"
+        color="#00C853"
+        onPress={() => saveSketchAsJson('sketch.json')}
       />
       <ToolBar
         onSelectTool={onSelectTool}
